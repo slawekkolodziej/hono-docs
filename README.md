@@ -21,6 +21,8 @@
   - [Table of Contents](#table-of-contents)
   - [Install](#install)
   - [Quick Start](#quick-start)
+  - [⚠️ Limitations: Grouped `AppType` Not Supported](#️-limitations-grouped-apptype-not-supported)
+    - [✅ Supported: Individual AppType per Module](#-supported-individual-apptype-per-module)
   - [Serving the OpenAPI Docs](#serving-the-openapi-docs)
   - [Configuration](#configuration)
   - [CLI Usage](#cli-usage)
@@ -121,9 +123,75 @@ yarn add -D @rcmade/hono-docs
    export default userRoutes;
    ```
 
----
+   ## ⚠️ Limitations: Grouped `AppType` Not Supported
 
-1. **Add an npm script** to `package.json`:
+   Currently, `@rcmade/hono-docs` **does not support** extracting route types from a grouped `AppType` where multiple sub-apps are composed using `.route()` or `.basePath()` on a single root app.
+
+   For example, the following pattern **is not supported**:
+
+   ```ts
+   import { Hono } from "hono";
+   import { docs } from "./docs";
+   import { userRoutes } from "./userRoutes";
+
+   const app = new Hono()
+     .basePath("/api")
+     .get("/", (c) => {
+       return c.text("Hello Hono!");
+     })
+     .route("/docs", docs)
+     .route("/user", userRoutes);
+
+   // ❌ This AppType is not supported
+   type AppType = typeof app;
+   ```
+
+   ### ✅ Supported: Individual AppType per Module
+
+   Instead, define and export `AppType` individually for each route module:
+
+   ```ts
+   // docs.ts
+   import { Hono } from "hono";
+   import { Scalar } from "hono-scalar";
+   import fs from "node:fs/promises";
+   import path from "node:path";
+
+   const docs = new Hono()
+     .get(
+       "/",
+       Scalar({
+         url: "/api/docs/open-api",
+         theme: "kepler",
+         layout: "modern",
+         defaultHttpClient: { targetKey: "js", clientKey: "axios" },
+       })
+     )
+     .get("/open-api", async (c) => {
+       const raw = await fs.readFile(
+         path.join(process.cwd(), "./openapi/openapi.json"),
+         "utf-8"
+       );
+       return c.json(JSON.parse(raw));
+     });
+
+   // ✅ This AppType is supported
+   export type AppType = typeof docs;
+   ```
+
+   ```ts
+   // userRoutes.ts
+   import { Hono } from "hono";
+
+   export const userRoutes = new Hono()
+     .get("/", (c) => c.json({ name: "current user" }))
+     .get("/u/:id", (c) => c.json({ id: c.req.param("id") }));
+
+   // ✅ This AppType is supported
+   export type AppType = typeof userRoutes;
+   ```
+
+3. **Add an npm script** to `package.json`:
 
    ```jsonc
    {
@@ -133,7 +201,7 @@ yarn add -D @rcmade/hono-docs
    }
    ```
 
-2. **Run the CLI**:
+4. **Run the CLI**:
 
    ```bash
    npm run docs
@@ -150,6 +218,8 @@ yarn add -D @rcmade/hono-docs
    ✅ OpenAPI written to ./openapi/openapi.json
    🎉 Done
    ```
+
+---
 
 ## Serving the OpenAPI Docs
 
@@ -279,10 +349,10 @@ git clone [https://github.com/rcmade/hono-docs.git](https://github.com/rcmade/ho
 cd hono-docs  
 pnpm install
 
-````
+```
 2. Implement or modify code under `src/`.
 3. Build and watch: pnpm build --watch
-````
+```
 
 4. Test locally via `npm link` or `file:` install in a demo project.
 
