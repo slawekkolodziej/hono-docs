@@ -17,13 +17,10 @@ jobs:
           node-version: 20
           cache: pnpm
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
       - name: Enable and Prepare pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@latest --activate
+          corepack prepare pnpm --activate  # or `latest`, but version pin is safer
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -40,17 +37,14 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           registry-url: "https://registry.npmjs.org"
           cache: pnpm
-
-      - name: Install pnpm
-        run: npm install -g pnpm
 
       - name: Enable and Prepare pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@latest --activate
+          corepack prepare pnpm@8.15.4 --activate
 
       - name: Install & Build
         run: |
