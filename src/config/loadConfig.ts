@@ -1,38 +1,46 @@
+// src/config/loadConfig.ts
 import { resolve, extname } from "path";
 import { existsSync } from "fs";
 import { register } from "esbuild-register/dist/node";
+import { pathToFileURL } from "url";
+import { createRequire } from "module";
 import type { HonoDocsConfig } from "../types";
 
+const nodeRequire = createRequire(import.meta.url);
+
 export async function loadConfig(configFile: string): Promise<HonoDocsConfig> {
-  // 1) Resolve absolute path
   const fullPath = resolve(process.cwd(), configFile);
   if (!existsSync(fullPath)) {
     throw new Error(`Config file not found: ${fullPath}`);
   }
 
-  // 2) Temporarily hook TS -> JS if needed
-  const ext = extname(fullPath);
+  const ext = extname(fullPath).toLowerCase();
   let unregister: () => void = () => {};
-  if (ext === ".ts" || ext === ".tsx") {
-    ({ unregister } = register({
-      // TODO
-      // you can forward tsconfig if you like:
-      // tsconfig: resolve(process.cwd(), 'tsconfig.json'),
-    }));
+
+  // Hook TS → JS for require()
+  if (ext === ".ts" || ext === ".tsx" || ext === ".mts") {
+    ({ unregister } = register());
   }
 
-  // 3) Dynamic import / require
-  let loaded: unknown;
-  if (ext === ".mjs" || ext === ".mts") {
-    loaded = await import(fullPath);
-  } else {
-    loaded = await import(fullPath);
-  }
-  unregister();
+  try {
+    let loaded: unknown;
+    if (ext === ".js" || ext === ".cjs") {
+      // pure JS: use ESM import for .mjs or require for .cjs
+      loaded = await import(pathToFileURL(fullPath).href);
+    } else if (ext === ".mjs") {
+      loaded = await import(pathToFileURL(fullPath).href);
+    } else {
+      // TS, or any other: use require so esbuild-register can transpile it
+      loaded = nodeRequire(fullPath);
+    }
 
-  // 4) Support both `export default` and module.exports
-  const config =
+    // Support both `export default` and module.exports
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    loaded && (loaded as any).default ? (loaded as any).default : loaded;
-  return config as HonoDocsConfig;
+    const config = (loaded && (loaded as any).default) || loaded;
+    console.log({ config });
+    return config as HonoDocsConfig;
+  } finally {
+    // always cleanup the hook
+    unregister();
+  }
 }
