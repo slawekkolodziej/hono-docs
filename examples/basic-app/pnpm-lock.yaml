@@ -16,8 +16,8 @@ importers:
         version: 4.8.2
     devDependencies:
       '@rcmade/hono-docs':
-        specifier: ^1.0.9
-        version: 1.0.9(esbuild@0.25.5)
+        specifier: ^1.0.10
+        version: 1.0.10(esbuild@0.25.5)
       '@types/node':
         specifier: ^20.11.17
         version: 20.19.1
@@ -206,8 +206,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@rcmade/hono-docs@1.0.9':
-    resolution: {integrity: sha512-rTChtYdyf+Kfo2VIOGoECyaNciMFvviGCSu49cHl+l30oMkMoZ/UuG6r2pRRvrp05cY/2/vjy63bHuajZg0IqQ==}
+  '@rcmade/hono-docs@1.0.10':
+    resolution: {integrity: sha512-aIW+o2IDz5pqFcmkaPPiuvmnzc/DJ4PfAP6y4pAm1KWJJbfzUuMfqwmo6iuPD5Duo4QV4OCbCXVoKGG2JC6Seg==}
     hasBin: true
 
   '@ts-morph/common@0.27.0':
@@ -486,7 +486,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
-  '@rcmade/hono-docs@1.0.9(esbuild@0.25.5)':
+  '@rcmade/hono-docs@1.0.10(esbuild@0.25.5)':
     dependencies:
       esbuild-register: 3.6.0(esbuild@0.25.5)
       ts-morph: 26.0.0

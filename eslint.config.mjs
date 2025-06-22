@@ -6,7 +6,7 @@ import { defineConfig } from "eslint/config";
 
 export default defineConfig([
   {
-    ignores: ["dist/**", "output/**", "tsup.config.ts","examples/**"],
+    ignores: ["dist/**", "output/**", "tsup.config.ts", "examples/**"],
   },
   {
     files: ["**/*.ts"],
@@ -26,6 +26,7 @@ export default defineConfig([
     rules: {
       ...tsPlugin.configs.recommended.rules,
       "brace-style": ["error", "1tbs", { allowSingleLine: true }],
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
   {

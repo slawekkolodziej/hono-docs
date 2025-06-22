@@ -1,6 +1,6 @@
 import { resolve, extname } from "path";
 import { existsSync } from "fs";
-import { pathToFileURL,  } from "url";
+import { pathToFileURL } from "url";
 import { register } from "esbuild-register/dist/node";
 import type { HonoDocsConfig } from "../types";
 
@@ -14,25 +14,27 @@ export async function loadConfig(configFile: string): Promise<HonoDocsConfig> {
 
   // 2. Detect file extension
   const ext = extname(fullPath);
-  let unregister: () => void = () => {};
+  let unregister = () => {};
 
   // 3. Register TS transpiler if needed
   if (ext === ".ts" || ext === ".tsx" || ext === ".mts") {
-    ({ unregister } = register({
+    const reg = register({
       target: "es2020",
       jsx: "automatic",
-    }));
+    });
+    unregister = reg.unregister;
   }
 
-  // 4. Dynamically import config
+  // 4. Dynamically load the config
   let configModule: unknown;
+
   try {
     if (ext === ".mjs" || ext === ".mts") {
       // ESM config
       configModule = await import(pathToFileURL(fullPath).href);
     } else {
-      // Fallback to dynamic import (will use CommonJS or TS via esbuild-register)
-      configModule = await import(fullPath);
+      // Use require with esbuild-register hook for .ts/.js
+      configModule = require(fullPath);
     }
   } catch (err) {
     unregister();
@@ -41,18 +43,17 @@ export async function loadConfig(configFile: string): Promise<HonoDocsConfig> {
         err instanceof Error ? err.message : String(err)
       }`
     );
+  } finally {
+    unregister();
   }
 
-  // 5. Cleanup esbuild hook
-  unregister();
-
-  // 6. Support both `export default` and CommonJS `module.exports`
+  // 5. Handle default or named export
   const config =
     configModule &&
     typeof configModule === "object" &&
     "default" in configModule
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ? (configModule as any).default
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (configModule as any).default
       : configModule;
 
   if (!config || typeof config !== "object") {
