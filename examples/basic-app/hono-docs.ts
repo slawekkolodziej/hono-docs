@@ -14,7 +14,7 @@ export default defineConfig({
     {
       name: "User Routes",
       apiPrefix: "/user",
-      appTypePath: "src/routes/authRoutes.ts",
+      appTypePath: "src/routes/userRoutes.ts",
       api: [
         { api: "/", method: "get", tag: ["UserList"] },
         { api: "/:id", method: "get", tag: ["UserDetail"] },

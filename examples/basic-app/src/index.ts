@@ -1,12 +1,15 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { authRoutes } from "./routes/userRoutes.js";
+import { userRoutes } from "./routes/userRoutes";
+import docs from "./routes/docs";
 
 const app = new Hono()
+  .basePath("/api")
   .get("/", (c) => {
     return c.text("Hello Hono!");
   })
-  .route("/user", authRoutes);
+  .route("/docs", docs)
+  .route("/user", userRoutes);
 
 serve(
   {
