@@ -81,11 +81,11 @@ yarn add -D @rcmade/hono-docs
 2. **Route Definitions & AppType**
    This library supports **only change routes** via a single AppType export in your routes file. You **must** export:
 
-   ````ts
-   	export type AppType = typeof yourRoutesVariable;
-   	```
+   ```ts
+   export type AppType = typeof yourRoutesVariable;
+   ```
 
-  **Example:**
+   **Example:**
 
    ```ts
    // src/routes/userRoutes.ts
@@ -93,12 +93,16 @@ yarn add -D @rcmade/hono-docs
    import { z } from "zod";
 
    export const userRoutes = new Hono()
-   .get("/u/:id", (c) => { /* … */ })
-   .post("/", async (c) => { /* … */ });
+     .get("/u/:id", (c) => {
+       /* … */
+     })
+     .post("/", async (c) => {
+       /* … */
+     });
 
    export type AppType = typeof userRoutes;
    export default userRoutes;
-   ````
+   ```
 
 ---
 
