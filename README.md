@@ -66,12 +66,29 @@ yarn add -D @rcmade/hono-docs
      },
      apis: [
        {
-         name: "User Routes",
-         apiPrefix: "/user",
-         appTypePath: "src/routes/userRoutes.ts",
+         name: "Auth Routes",
+         apiPrefix: "/auth", // This will be prepended to all `api` values below
+         appTypePath: "src/routes/authRoutes.ts", // Path to your AppType export
+
          api: [
-           { api: "/", method: "get", tag: ["UserList"] },
-           { api: "/:id", method: "get", tag: ["UserDetail"] },
+           // ✅ Custom OpenAPI metadata for the GET /auth/u/{id} endpoint
+           {
+             api: "/u/{id}", // Final route = /auth/u/{id}
+             method: "get",
+             summary: "Fetch user by ID", // Optional: title shown in docs
+             description: "Returns a user object based on the provided ID.",
+             tag: ["User"],
+           },
+
+           // ✅ Another example with metadata for GET /auth
+           {
+             api: "/", // Final route = /auth/
+             method: "get",
+             summary: "Get current user",
+             description:
+               "Returns the currently authenticated user's information.",
+             tag: ["User Info"],
+           },
          ],
        },
      ],
@@ -99,7 +116,7 @@ yarn add -D @rcmade/hono-docs
      .post("/", async (c) => {
        /* … */
      });
-
+   // Must add AppType
    export type AppType = typeof userRoutes;
    export default userRoutes;
    ```
@@ -264,9 +281,7 @@ pnpm install
 
 ````
 2. Implement or modify code under `src/`.
-3. Build and watch:
-   ```bash
-pnpm build --watch
+3. Build and watch: pnpm build --watch
 ````
 
 4. Test locally via `npm link` or `file:` install in a demo project.

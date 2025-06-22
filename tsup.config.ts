@@ -8,5 +8,11 @@ export default defineConfig({
   dts: true,
   format: ["cjs", "esm"],
   target: "node16",
-  external: ["@rcmade/hono-docs", "@rcmade/hono-docs/package.json"],
+  external: [
+    "@rcmade/hono-docs",
+    "@rcmade/hono-docs/package.json",
+    "esbuild-register",
+    "ts-morph",
+    "yargs",
+  ],
 });

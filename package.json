@@ -2,6 +2,22 @@
   "name": "@rcmade/hono-docs",
   "version": "1.0.7",
   "description": "Auto-generate OpenAPI 3.0 spec from Hono route types",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rcmade/hono-docs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rcmade/hono-docs/issues"
+  },
+  "homepage": "https://github.com/rcmade/hono-docs#readme",
+  "keywords": [
+    "openapi",
+    "hono",
+    "typescript",
+    "documentation",
+    "cli",
+    "generator"
+  ],
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
