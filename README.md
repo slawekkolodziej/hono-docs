@@ -337,7 +337,7 @@ import { runGenerate, defineConfig } from "@rcmade/hono-docs";
 
 ## Examples
 
-Check out [`examples/basic-app/`](https://github.com/rcmade/hono-docs/examples/basic-app) for a minimal setup.
+Check out [`examples/basic-app/`](https://github.com/rcmade/hono-docs/tree/main/examples/basic-app) for a minimal setup.
 
 ---
 
