@@ -6,6 +6,7 @@ import { generateTypes } from "./generateTypes";
 import { generateOpenApi } from "./generateOpenApi";
 import { Api } from "../types";
 import { cleanDefaultResponse, sanitizeApiPrefix } from "../utils/format";
+import { getLibDir } from "../utils/libDir";
 
 export async function runGenerate(configPath: string) {
   const config = await loadConfig(configPath);
@@ -16,12 +17,15 @@ export async function runGenerate(configPath: string) {
     tsConfigFilePath: resolve(rootPath, config.tsConfigPath),
   });
 
-  const isDevMode =
-    __dirname.includes("/src/") || __dirname.includes("\\src\\");
+  // const isDevMode =
+  //   __dirname.includes("/src/") || __dirname.includes("\\src\\");
 
-  const libDir = isDevMode
-    ? path.resolve(__dirname, "../../")
-    : path.dirname(require.resolve("@rcmade/hono-docs/package.json"));
+  // const libDir = isDevMode
+  //   ? path.resolve(__dirname, "../../")
+  //   : // : path.dirname(require.resolve("@rcmade/hono-docs/package.json"));
+  //     path.dirname(fileURLToPath(import.meta.url));
+  const libDir = getLibDir();
+  console.log("Library root directory:", libDir);
 
   const apis = config.apis;
 

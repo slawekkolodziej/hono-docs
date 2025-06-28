@@ -42,8 +42,7 @@
   "scripts": {
     "build": "tsup",
     "lint": "eslint . --ext .ts,.js",
-    "postinstall": "husky install",
-    "prepare": "husky"
+    "prepare": "husky install"
   },
   "publishConfig": {
     "access": "public"
