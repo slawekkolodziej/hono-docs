@@ -103,7 +103,7 @@ export async function runGenerate(configPath: string) {
 
         // Override or enrich metadata if defined
         if (customApi) {
-          operation.summary = customApi.summery || operation.summary;
+          operation.summary = customApi.summary || operation.summary;
           operation.description =
             customApi.description || operation.description;
           operation.tags =

@@ -1,5 +1,5 @@
 import type { Project } from "ts-morph";
-import type { OpenAPIV3 } from "openapi-types";
+import { OpenAPIV3 } from "openapi-types";
 
 export type OpenAPIConfig = Omit<
   OpenAPIV3.Document,
@@ -8,7 +8,7 @@ export type OpenAPIConfig = Omit<
 
 export type Api = {
   api: string; // /devices/d/{deviceId} (do not include prefix)
-  summery?: string;
+  summary?: string;
   description?: string;
   tag?: string[];
   method: "get" | "post" | "put" | "patch" | "delete";
