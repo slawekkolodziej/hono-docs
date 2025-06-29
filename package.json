@@ -1,6 +1,6 @@
 {
   "name": "@rcmade/hono-docs",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "description": "Auto-generate OpenAPI 3.0 spec from Hono route types",
   "type": "module",
   "repository": {
