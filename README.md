@@ -142,7 +142,7 @@ yarn add -D @rcmade/hono-docs
      .route("/docs", docs)
      .route("/user", userRoutes);
 
-   // ❌ This AppType is not supported
+   // ❌ This Group AppType is not supported
    type AppType = typeof app;
    ```
 
@@ -206,7 +206,7 @@ yarn add -D @rcmade/hono-docs
    ```bash
    npm run docs
    # or
-   npx hono-docs generate --config ./hono-docs.ts
+   npx @rcmade/hono-docs generate --config ./hono-docs.ts
    ```
 
    You’ll see:
@@ -309,7 +309,7 @@ All options live in your `defineConfig({ ... })` object:
 ## CLI Usage
 
 ```text
-Usage: hono-docs generate --config <path> [--output <file>]
+Usage: @rcmade/hono-docs generate --config <path> [--output <file>]
 
 Options:
   -c, --config   Path to your config file (TS or JS)        [string] [required]
@@ -326,10 +326,8 @@ You can use the API directly in code:
 import { runGenerate, defineConfig } from "@rcmade/hono-docs";
 
 (async () => {
-  const cfg = defineConfig({
-    /* ... */
-  });
-  await runGenerate(cfg as any);
+  const cfgPath = 'yourHonoDocs.ts'
+  await runGenerate(cfgPath);
 })();
 ```
 
