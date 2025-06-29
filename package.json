@@ -2,6 +2,7 @@
   "name": "@rcmade/hono-docs",
   "version": "1.0.4",
   "description": "Auto-generate OpenAPI 3.0 spec from Hono route types",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/rcmade/hono-docs.git"
@@ -19,24 +20,14 @@
     "generator"
   ],
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "bin": {
     "hono-docs": "dist/cli/index.js"
   },
   "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    },
-    "./core": {
-      "import": "./dist/core/index.mjs",
-      "require": "./dist/core/index.js"
-    },
-    "./cli": {
-      "import": "./dist/cli/index.mjs",
-      "require": "./dist/cli/index.js"
-    },
+    ".": "./dist/index.js",
+    "./core": "./dist/core/index.js",
+    "./cli": "./dist/cli/index.js",
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -53,6 +44,7 @@
   "dependencies": {
     "esbuild-register": "^3.6.0",
     "ts-morph": "^26.0.0",
+    "tsx": "^4.20.3",
     "yargs": "^18.0.0"
   },
   "devDependencies": {
@@ -61,6 +53,7 @@
     "@types/yargs": "^17.0.33",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
+    "esbuild": "^0.25.5",
     "eslint": "^9.29.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-format": "^1.0.1",

@@ -1,2 +1,4 @@
-export { defineConfig } from "../config";
+// src/core/index.ts
 export { runGenerate } from "./runGenerate";
+export { generateOpenApi } from "./generateOpenApi";
+export { generateTypes } from "./generateTypes";
