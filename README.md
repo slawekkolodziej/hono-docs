@@ -196,7 +196,7 @@ yarn add -D @rcmade/hono-docs
    ```jsonc
    {
      "scripts": {
-       "docs": "hono-docs generate --config ./hono-docs.ts"
+       "docs": "npx @rcmade/hono-docs generate --config ./hono-docs.ts"
      }
    }
    ```
