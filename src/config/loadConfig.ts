@@ -4,6 +4,7 @@ import { existsSync } from "fs";
 // <-- import tsImport from tsx:
 import { tsImport } from "tsx/esm/api";
 import type { HonoDocsConfig } from "../types";
+import { unwrapModule } from "../utils/libDir";
 
 export async function loadConfig(configFile: string): Promise<HonoDocsConfig> {
   // 1. Resolve absolute path
@@ -24,19 +25,14 @@ export async function loadConfig(configFile: string): Promise<HonoDocsConfig> {
     );
   }
 
-  // 3. Unwrap default export if present
-  const config =
-    typeof configModule === "object" &&
-    configModule !== null &&
-    "default" in configModule
-      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (configModule as any).default
-      : configModule;
+  const config = unwrapModule(configModule);
 
   if (!config || typeof config !== "object") {
     throw new Error(
       `[hono-docs] Invalid config file. Expected an object, got: ${typeof config}`
     );
   }
+
+  // console.log({ config });
   return config as HonoDocsConfig;
 }

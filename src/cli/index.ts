@@ -18,6 +18,7 @@ yargs(hideBin(process.argv))
       }),
     async (argv) => {
       try {
+        console.log(argv.config, "----------------");
         await runGenerate(argv.config);
       } catch (e) {
         console.error("❌", e);

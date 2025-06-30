@@ -18,3 +18,12 @@ export function getLibDir(): string {
   const __dirnameEsm = dirname(__filename);
   return resolve(__dirnameEsm, "../../");
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function unwrapModule(module: any): unknown {
+  let result = module;
+  while (result?.default) {
+    result = result.default;
+  }
+  return result;
+}
