@@ -6,9 +6,9 @@
 
 ## Features
 
-- **One-stop CLI** (`hono-docs generate`) to:
+- **CLI** (`@rcmade/hono-docs generate`) to:
   - Extract your route `AppType` definitions via **ts-morph**
-  - Emit `.d.ts` “snapshot” files per API prefix under `output/types`
+  - Emit `.json` OpenAPI” files per API prefix under `output/*.json`
   - Generate a merged `openapi.json` spec at your configured output path
 - Full TypeScript support (TS & JS config files, inference via `defineConfig`)
 
@@ -61,7 +61,7 @@ yarn add -D @rcmade/hono-docs
      openApi: {
        openapi: "3.0.0",
        info: { title: "My API", version: "1.0.0" },
-       servers: [{ url: "http://localhost:3000" }],
+       servers: [{ url: "http://localhost:3000/api" }],
      },
      outputs: {
        openApiJson: "./openapi/openapi.json",
@@ -288,21 +288,26 @@ Visiting `/api/docs` shows the UI; `/api/docs/open-api` serves the JSON.
 
 All options live in your `defineConfig({ ... })` object:
 
-| Field                    | Type                                                     | Required | Description                                                       |
-| ------------------------ | -------------------------------------------------------- | -------- | ----------------------------------------------------------------- |
-| `tsConfigPath`           | `string`                                                 | Yes      | Path to your project’s `tsconfig.json`                            |
-| `openApi`                | `object`                                                 | Yes      | Base OpenAPI fields                                               |
-| `openApi.openapi`        | `string`                                                 | Yes      | OpenAPI version (e.g. `"3.0.0"`)                                  |
-| `openApi.info`           | `{ title: string; version: string }`                     | Yes      | API title & version                                               |
-| `openApi.servers`        | `Array<{ url: string }>`                                 | Yes      | List of server URL objects                                        |
-| `outputs`                | `object`                                                 | Yes      | Output paths                                                      |
-| `outputs.openApiJson`    | `string`                                                 | Yes      | File path for generated `openapi.json`                            |
-| `apis`                   | `Array<ApiBlock>`                                        | Yes      | One block per group of routes                                     |
-| ‐ `ApiBlock.name`        | `string`                                                 | Yes      | Human-readable name for logging                                   |
-| ‐ `ApiBlock.apiPrefix`   | `string`                                                 | Yes      | Base path prefix (e.g. `/user`)                                   |
-| ‐ `ApiBlock.appTypePath` | `string`                                                 | Yes      | Path to the TS file exporting `type AppType = yourRoutesVariable` |
-| ‐ `ApiBlock.api`         | `Array<{ api: string; method: string; tag?: string[] }>` | No       | Methods to include; defaults to all in `AppType` if omitted       |
-| `preDefineTypeContent`   | `string`                                                 | No       | Content injected at top of each generated `.d.ts` snapshot        |
+| Field                  | Type                                              | Required | Description                                                                  |
+| ---------------------- | ------------------------------------------------- | -------- | ---------------------------------------------------------------------------- |
+| `tsConfigPath`         | `string`                                          | Yes      | Path to your project’s `tsconfig.json`                                       |
+| `openApi`              | `OpenAPIConfig`                                   | Yes      | Static OpenAPI fields excluding `paths`, `components`, and `tags`            |
+| └ `openapi`            | `string`                                          | Yes      | OpenAPI version (e.g., `"3.0.0"`)                                            |
+| └ `info`               | `{ title: string; version: string }`              | Yes      | API title and version metadata                                               |
+| └ `servers`            | `Array<{ url: string }>`                          | Yes      | Array of server objects describing base URLs for the API                     |
+| `outputs`              | `{ openApiJson: string }`                         | Yes      | File output paths                                                            |
+| └ `openApiJson`        | `string`                                          | Yes      | Path to output the generated `openapi.json` file                             |
+| `apis`                 | `ApiGroup[]`                                      | Yes      | Array of route groups to include in the documentation                        |
+| └ `name`               | `string`                                          | Yes      | Human-readable name for the route group                                      |
+| └ `apiPrefix`          | `string`                                          | Yes      | URL path prefix for all routes in this group (e.g., `/auth`)                 |
+| └ `appTypePath`        | `string`                                          | Yes      | File path to the module exporting `AppType = typeof routesInstance`          |
+| └ `api`                | `Array<Api>`                                      | No       | Optional list of endpoint definitions; if omitted, all in `AppType` are used |
+|     └ `api`            | `string`                                          | Yes      | Endpoint path (without prefix), e.g., `/user/{id}`                           |
+|     └ `method`         | `"get" \| "post" \| "put" \| "patch" \| "delete"` | Yes      | HTTP method for the endpoint                                                 |
+|     └ `summary`        | `string`                                          | No       | Short summary for OpenAPI documentation                                      |
+|     └ `description`    | `string`                                          | No       | Longer description for the endpoint                                          |
+|     └ `tag`            | `string[]`                                        | No       | Tags used to categorize the endpoint                                         |
+| `preDefineTypeContent` | `string`                                          | No       | Optional content injected at the top of each generated `.d.ts` snapshot      |
 
 ---
 
@@ -343,16 +348,16 @@ Check out [`examples/basic-app/`](https://github.com/rcmade/hono-docs/tree/main/
 
 1. Clone & install dependencies:
 
-git clone [https://github.com/rcmade/hono-docs.git](https://github.com/rcmade/hono-docs.git)  
-cd hono-docs  
-pnpm install
+   git clone [https://github.com/rcmade/hono-docs.git](https://github.com/rcmade/hono-docs.git)  
+   cd hono-docs  
+   pnpm install
 
-```
-2. Implement or modify code under `src/`.
-3. Build and watch: pnpm build --watch
-```
+   ```bash
+   1. Implement or modify code under `src/`.
+   2. Build and watch: pnpm build --watch
+   ```
 
-4. Test locally via `npm link` or `file:` install in a demo project.
+2. Test locally via `npm link` or `file:` install in a demo project.
 
 ---
 
@@ -367,4 +372,4 @@ pnpm install
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](https://github.com/Rcmade/hono-docs/blob/main/LICENSE)

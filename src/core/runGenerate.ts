@@ -9,7 +9,6 @@ import { cleanDefaultResponse, sanitizeApiPrefix } from "../utils/format";
 import { getLibDir } from "../utils/libDir";
 
 export async function runGenerate(configPath: string) {
-  console.log({ configPath });
   const config = await loadConfig(configPath);
 
   const rootPath = process.cwd();
