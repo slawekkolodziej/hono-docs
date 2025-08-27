@@ -1,13 +1,13 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Middleware Docs Example API",
+    "title": "Middleware Docs Test API",
     "version": "1.0.0",
-    "description": "Example API demonstrating doc() middleware integration with hono-docs"
+    "description": "Test demonstrating doc() middleware integration with hono-docs"
   },
   "tags": [
     {
-      "name": "Middleware Docs Example"
+      "name": "Middleware Docs Test"
     }
   ],
   "paths": {
@@ -18,7 +18,7 @@
         "tags": [
           "Health",
           "Monitoring",
-          "Middleware Docs Example"
+          "Middleware Docs Test"
         ],
         "responses": {
           "default": {
@@ -52,7 +52,7 @@
         "description": "Retrieve a paginated list of users with optional filtering",
         "tags": [
           "Users",
-          "Middleware Docs Example"
+          "Middleware Docs Test"
         ],
         "responses": {
           "default": {
@@ -86,7 +86,7 @@
         "tags": [
           "Users",
           "Admin",
-          "Middleware Docs Example"
+          "Middleware Docs Test"
         ],
         "responses": {
           "default": {
@@ -120,7 +120,7 @@
         "description": "Retrieve detailed information about a specific user by their unique ID",
         "tags": [
           "Users",
-          "Middleware Docs Example"
+          "Middleware Docs Test"
         ],
         "parameters": [
           {
@@ -168,7 +168,7 @@
         "description": "This endpoint is deprecated and will be removed in v2.0",
         "tags": [
           "Legacy",
-          "Middleware Docs Example"
+          "Middleware Docs Test"
         ],
         "deprecated": true,
         "responses": {
