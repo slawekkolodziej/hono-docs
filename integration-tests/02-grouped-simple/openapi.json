@@ -1,0 +1,176 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Simple Grouped App Test API",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "Simple Grouped App"
+    }
+  ],
+  "paths": {
+    "/docs": {
+      "get": {
+        "summary": "Auto-generated GET /docs",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "docs": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "docs"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Grouped App"
+        ]
+      }
+    },
+    "/docs/{id}": {
+      "get": {
+        "summary": "Auto-generated GET /docs/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "docId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "docId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Grouped App"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Auto-generated GET /users",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {}
+                    }
+                  },
+                  "required": [
+                    "users"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Grouped App"
+        ]
+      },
+      "post": {
+        "summary": "Auto-generated POST /users",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "created": {
+                      "oneOf": [
+                        {},
+                        {}
+                      ]
+                    }
+                  },
+                  "required": [
+                    "created"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Grouped App"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "summary": "Auto-generated GET /users/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "userId"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Grouped App"
+        ]
+      }
+    }
+  }
+}
