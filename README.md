@@ -321,6 +321,23 @@ Options:
   -h, --help     Show help                                 [boolean]
 ```
 
+### Debug Logging
+
+Use standard Node.js debug patterns to enable detailed logging:
+
+```bash
+# Enable hono-docs debug logging
+DEBUG=hono-docs npx hono-docs generate --config hono-docs.config.ts
+
+# Enable all debug logging (including dependencies)
+DEBUG=* npx hono-docs generate --config hono-docs.config.ts
+
+# Use wildcards for broader matching
+DEBUG=hono* npx hono-docs generate --config hono-docs.config.ts
+```
+
+Debug logging shows the step-by-step TypeScript AST traversal and route extraction process, which is useful for troubleshooting complex grouped route structures.
+
 ---
 
 ## Programmatic Usage
@@ -340,7 +357,7 @@ import { runGenerate, defineConfig } from "@rcmade/hono-docs";
 
 ## Examples
 
-Check out [`integration-tests/06-manual-routes/`](https://github.com/rcmade/hono-docs/tree/main/integration-tests/06-manual-routes) for a manual route setup example, or browse other patterns in [`integration-tests/`](https://github.com/rcmade/hono-docs/tree/main/integration-tests).
+Check out [`integration-tests/manual-routes/`](https://github.com/rcmade/hono-docs/tree/main/integration-tests/manual-routes) for a manual route setup example, or browse other patterns in [`integration-tests/`](https://github.com/rcmade/hono-docs/tree/main/integration-tests).
 
 ---
 
