@@ -16,6 +16,7 @@ import type {
   OpenApiPath,
   ApiGroup,
 } from "../types";
+import type { SourceFile } from "ts-morph";
 import { genParameters } from "../utils/parameters";
 import { genRequestBody } from "../utils/requestBody";
 import { buildSchema } from "../utils/buildSchema";
@@ -28,6 +29,79 @@ type OpenAPI = Record<string, any>;
 // Debug logging using standard debug package
 // Usage: DEBUG=hono-docs or DEBUG=* 
 const debug = createDebug("hono-docs");
+
+/**
+ * Extract simple routes from source code when type information is insufficient
+ * This handles cases where simple Hono apps generate BlankSchema instead of typed routes
+ */
+function extractSimpleRoutesFromSource(
+  sourceFile: SourceFile, 
+  apiGroup: ApiGroup
+): Record<string, Record<string, any>> {
+  debug("Parsing simple routes from source code");
+  
+  // Find all call expressions in the source file
+  const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
+  const routes: Record<string, Record<string, any>> = {};
+  
+  for (const call of callExpressions) {
+    try {
+      const expression = call.getExpression();
+      
+      // Look for method access expressions like .get(), .post(), etc.
+      if (expression.getKind() === SyntaxKind.PropertyAccessExpression) {
+        const propertyAccess = expression.asKind(SyntaxKind.PropertyAccessExpression)!;
+        const methodName = propertyAccess.getName().toLowerCase();
+        
+        // Check if it's an HTTP method
+        const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
+        if (httpMethods.includes(methodName)) {
+          const args = call.getArguments();
+          if (args.length >= 2) {
+            const routeArg = args[0];
+            
+            // Extract the route path
+            if (routeArg.getKind() === SyntaxKind.StringLiteral) {
+              const routePath = routeArg.getText().replace(/['"]/g, '');
+              const normalizedPath = routePath.replace(/:([^/]+)/g, '{$1}');
+              
+              if (!routes[normalizedPath]) {
+                routes[normalizedPath] = {};
+              }
+              
+              routes[normalizedPath][methodName] = {
+                summary: `Auto-generated ${methodName.toUpperCase()} ${normalizedPath}`,
+                responses: {
+                  "default": {
+                    description: "Default fallback response", 
+                    content: {
+                      "application/json": {
+                        schema: { type: "object" }
+                      }
+                    }
+                  }
+                }
+              };
+              
+              debug("Found simple route: %s %s", methodName.toUpperCase(), routePath);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      debug("Error processing call expression: %s", error);
+      continue;
+    }
+  }
+  
+  if (Object.keys(routes).length > 0) {
+    debug("Successfully parsed %d routes from source", Object.keys(routes).length);
+  } else {
+    debug("No simple routes found in source");
+  }
+  
+  return routes;
+}
 
 /**
  * CORE ALGORITHM: Extract TypeLiteral nodes with path prefixes from Hono's complex type structures
@@ -225,6 +299,17 @@ export async function generateOpenApi({
     debug("Extracted %d TypeLiteral nodes from union", unionLiterals.length);
   } else if (routesNode.isKind(SyntaxKind.TypeLiteral)) {
     literalsWithPrefixes.push({ literal: routesNode as TypeLiteralNode, prefix: "" });
+  } else if (routesNode.isKind(SyntaxKind.ImportType)) {
+    // Handle simple routes that generate BlankSchema (fallback to source parsing)  
+    debug("Detected ImportType (likely BlankSchema), attempting source code parsing for simple routes");
+    const simpleRoutes = extractSimpleRoutesFromSource(sf, apiGroup);
+    
+    // If we found simple routes, we'll add them to paths after it's created
+    if (Object.keys(simpleRoutes).length > 0) {
+      // Store the simple routes to add them after paths object is created
+      (literalsWithPrefixes as any).simpleRoutes = simpleRoutes;
+    }
+    
   } else {
     debug("Routes node kind: %s", routesNode.getKindName());
     debug("Routes node text: %s", routesNode.getText());
