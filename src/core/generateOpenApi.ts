@@ -24,7 +24,28 @@ import { extractDocumentationFromMiddleware, createDocLookup } from "../utils/mi
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OpenAPI = Record<string, any>;
 
-// Helper function to recursively extract TypeLiteral nodes with their prefixes from union types
+/**
+ * CORE ALGORITHM: Extract TypeLiteral nodes with path prefixes from Hono's complex type structures
+ * 
+ * This is the heart of route extraction for grouped Hono apps. Hono's `.route()` method creates
+ * complex nested type unions that represent grouped routes with path prefixes.
+ * 
+ * For example:
+ * ```typescript
+ * const app = new Hono()
+ *   .route("/api", apiRoutes)    // Creates MergeSchemaPath<ApiSchema, "/api">
+ *   .route("/auth", authRoutes)  // Creates MergeSchemaPath<AuthSchema, "/auth">
+ * ```
+ * 
+ * This results in union types like:
+ * BlankSchema | MergeSchemaPath<ApiSchema, "/api"> | MergeSchemaPath<AuthSchema, "/auth">
+ * 
+ * We need to:
+ * 1. Skip BlankSchema (empty base schema)
+ * 2. Extract schemas from MergeSchemaPath and combine them with their path prefixes
+ * 3. Handle nested unions/intersections recursively
+ * 4. Return all TypeLiteral nodes (route definitions) with their full path prefixes
+ */
 function extractTypeLiteralsFromUnion(unionNode: TypeNode, currentPrefix: string = ""): Array<{ literal: TypeLiteralNode; prefix: string }> {
   const literals: Array<{ literal: TypeLiteralNode; prefix: string }> = [];
 
@@ -109,6 +130,26 @@ function extractTypeLiteralsFromUnion(unionNode: TypeNode, currentPrefix: string
   return literals;
 }
 
+/**
+ * MAIN FUNCTION: Generate OpenAPI specification from Hono AppType
+ * 
+ * This function orchestrates the entire OpenAPI generation process:
+ * 1. Load and parse TypeScript source files
+ * 2. Extract documentation from doc() middleware (if present)
+ * 3. Parse the Hono AppType to extract route type information
+ * 4. Convert TypeScript route types to OpenAPI paths/operations
+ * 5. Generate response schemas and request/response examples
+ * 6. Write the final OpenAPI JSON specification to disk
+ * 
+ * @param config - Hono-docs configuration with OpenAPI metadata
+ * @param snapshotPath - Path information for the generated AppType snapshot
+ * @param apiGroup - API group configuration with route patterns
+ * @param fileName - Output filename for the OpenAPI JSON
+ * @param project - ts-morph Project instance for TypeScript analysis
+ * @param rootPath - Root directory path for resolving relative paths  
+ * @param outputRoot - Output directory for generated files
+ * @returns Promise resolving to the output path information
+ */
 export async function generateOpenApi({
   config,
   snapshotPath,
@@ -117,11 +158,7 @@ export async function generateOpenApi({
   project,
   rootPath,
   outputRoot,
-}: // {
-//   config: HonoDocsConfig;
-//   snapshotPath: AppTypeSnapshotPath;
-// }
-GenerateParams & {
+}: GenerateParams & {
   snapshotPath: AppTypeSnapshotPath;
   apiGroup: ApiGroup;
 }): Promise<OpenApiPath> {
