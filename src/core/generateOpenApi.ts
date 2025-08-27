@@ -1,6 +1,7 @@
 // src/core/generateOpenApi.ts
 import fs from "node:fs";
 import path from "node:path";
+import createDebug from "debug";
 import {
   SyntaxKind,
   TypeLiteralNode,
@@ -23,6 +24,10 @@ import { extractDocumentationFromMiddleware, createDocLookup } from "../utils/mi
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OpenAPI = Record<string, any>;
+
+// Debug logging using standard debug package
+// Usage: DEBUG=hono-docs or DEBUG=* 
+const debug = createDebug("hono-docs");
 
 /**
  * CORE ALGORITHM: Extract TypeLiteral nodes with path prefixes from Hono's complex type structures
@@ -54,16 +59,16 @@ function extractTypeLiteralsFromUnion(unionNode: TypeNode, currentPrefix: string
   }
 
   for (const member of unionNode.asKind(SyntaxKind.UnionType)!.getTypeNodes()) {
-    console.log("🔍 Processing union member:", member.getKindName(), "with prefix:", currentPrefix);
+    debug("Processing union member: %s with prefix: %s", member.getKindName(), currentPrefix);
 
     if (member.isKind(SyntaxKind.TypeLiteral)) {
-      console.log("🔍 Found direct TypeLiteral in union");
+      debug("Found direct TypeLiteral in union");
       literals.push({ literal: member as TypeLiteralNode, prefix: currentPrefix });
     } else if (member.isKind(SyntaxKind.ImportType)) {
       // Handle ImportType with qualifier (like import("...").MergeSchemaPath)
       const importType = member.asKind(SyntaxKind.ImportType)!;
       const qualifier = importType.getQualifier();
-      console.log("🔍 ImportType qualifier:", qualifier?.getKindName());
+      debug("ImportType qualifier: %s", qualifier?.getKindName());
 
       if (qualifier) {
         let qualifierName = "";
@@ -73,27 +78,27 @@ function extractTypeLiteralsFromUnion(unionNode: TypeNode, currentPrefix: string
         } else if (qualifier.isKind(SyntaxKind.Identifier)) {
           qualifierName = qualifier.asKind(SyntaxKind.Identifier)!.getText();
         }
-        console.log("🔍 ImportType qualifier name:", qualifierName);
+        debug("ImportType qualifier name: %s", qualifierName);
 
         // Only process MergeSchemaPath, skip BlankSchema
         if (qualifierName === "MergeSchemaPath") {
           const typeArgs = importType.getTypeArguments();
-          console.log("🔍 MergeSchemaPath typeArgs:", typeArgs.length);
+          debug("MergeSchemaPath typeArgs: %d", typeArgs.length);
           if (typeArgs.length >= 2) {
             const schema = typeArgs[0];
             const pathPrefix = typeArgs[1].getText().replace(/"/g, "");
             const fullPrefix = currentPrefix + pathPrefix;
-            console.log("🔍 Schema kind:", schema.getKindName(), "with prefix:", fullPrefix);
+            debug("Schema kind: %s with prefix: %s", schema.getKindName(), fullPrefix);
 
             if (schema.isKind(SyntaxKind.IntersectionType)) {
-              console.log("🔍 Processing IntersectionType with", schema.asKind(SyntaxKind.IntersectionType)!.getTypeNodes().length, "members");
+              debug("Processing IntersectionType with %d members", schema.asKind(SyntaxKind.IntersectionType)!.getTypeNodes().length);
               for (const intersectMember of schema.asKind(SyntaxKind.IntersectionType)!.getTypeNodes()) {
-                console.log("🔍 Intersection member kind:", intersectMember.getKindName());
+                debug("Intersection member kind: %s", intersectMember.getKindName());
                 if (intersectMember.isKind(SyntaxKind.TypeLiteral)) {
-                  console.log("🔍 Found TypeLiteral in IntersectionType!");
+                  debug("Found TypeLiteral in IntersectionType!");
                   literals.push({ literal: intersectMember as TypeLiteralNode, prefix: fullPrefix });
                 } else {
-                  console.log("🔍 Non-TypeLiteral in intersection:", intersectMember.getKindName());
+                  debug("Non-TypeLiteral in intersection: %s", intersectMember.getKindName());
                 }
               }
             } else if (schema.isKind(SyntaxKind.UnionType)) {
@@ -103,27 +108,27 @@ function extractTypeLiteralsFromUnion(unionNode: TypeNode, currentPrefix: string
             } else {
               // Recursively extract from the schema
               const nestedLiterals = extractTypeLiteralsFromUnion(schema, fullPrefix);
-              console.log("🔍 Found", nestedLiterals.length, "nested literals");
+              debug("Found %d nested literals", nestedLiterals.length);
               literals.push(...nestedLiterals);
             }
           }
         } else {
-          console.log("🔍 Skipping non-MergeSchemaPath:", qualifierName);
+          debug("Skipping non-MergeSchemaPath: %s", qualifierName);
         }
         // BlankSchema is intentionally skipped (empty schema)
       }
     } else if (member.isKind(SyntaxKind.IntersectionType)) {
-      console.log("🔍 Processing IntersectionType in union");
+      debug("Processing IntersectionType in union");
       // Handle intersections within unions
       for (const intersectMember of member.asKind(SyntaxKind.IntersectionType)!.getTypeNodes()) {
-        console.log("🔍 Intersection member:", intersectMember.getKindName());
+        debug("Intersection member: %s", intersectMember.getKindName());
         if (intersectMember.isKind(SyntaxKind.TypeLiteral)) {
-          console.log("🔍 Found TypeLiteral in intersection");
+          debug("Found TypeLiteral in intersection");
           literals.push({ literal: intersectMember as TypeLiteralNode, prefix: currentPrefix });
         }
       }
     } else {
-      console.log("🔍 Ignoring union member type:", member.getKindName());
+      debug("Ignoring union member type: %s", member.getKindName());
     }
   }
 
@@ -167,7 +172,7 @@ export async function generateOpenApi({
   );
   
   // Extract documentation from doc() middleware in the original source file
-  console.log("🔍 Extracting documentation from middleware in source file:", apiGroup.appTypePath);
+  debug("Extracting documentation from middleware in source file: %s", apiGroup.appTypePath);
   let docLookup = new Map<string, import("../utils/middleware-docs").DocConfig>();
   
   try {
@@ -176,7 +181,7 @@ export async function generateOpenApi({
     );
     const documentation = extractDocumentationFromMiddleware(originalSf);
     docLookup = createDocLookup(documentation);
-    console.log(`🔍 Found ${documentation.length} routes with doc() middleware`);
+    debug("Found %d routes with doc() middleware", documentation.length);
   } catch (error) {
     console.warn(`⚠️ Failed to extract documentation from middleware: ${error}`);
     console.warn(`⚠️ Continuing with auto-generated documentation only`);
@@ -213,23 +218,23 @@ export async function generateOpenApi({
     }
   } else if (routesNode.isKind(SyntaxKind.UnionType)) {
     // Handle unions (for grouped AppType)
-    console.log("🔍 Processing UnionType with", routesNode.asKind(SyntaxKind.UnionType)!.getTypeNodes().length, "members");
+    debug("Processing UnionType with %d members", routesNode.asKind(SyntaxKind.UnionType)!.getTypeNodes().length);
 
     const unionLiterals = extractTypeLiteralsFromUnion(routesNode);
     literalsWithPrefixes.push(...unionLiterals);
-    console.log("🔍 Extracted", unionLiterals.length, "TypeLiteral nodes from union");
+    debug("Extracted %d TypeLiteral nodes from union", unionLiterals.length);
   } else if (routesNode.isKind(SyntaxKind.TypeLiteral)) {
     literalsWithPrefixes.push({ literal: routesNode as TypeLiteralNode, prefix: "" });
   } else {
-    console.log("🔍 Routes node kind:", routesNode.getKindName());
-    console.log("🔍 Routes node text:", routesNode.getText());
+    debug("Routes node kind: %s", routesNode.getKindName());
+    debug("Routes node text: %s", routesNode.getText());
     throw new Error("Routes type is not a literal, intersection, or union of literals");
   }
 
   const paths: OpenAPI = {};
 
   for (const { literal: lit, prefix } of literalsWithPrefixes) {
-    console.log("🔍 Processing literal with prefix:", prefix);
+    debug("Processing literal with prefix: %s", prefix);
     for (const member of lit.getMembers()) {
       if (!member.isKind(SyntaxKind.PropertySignature)) continue;
       const routeProp = member.asKindOrThrow(SyntaxKind.PropertySignature);
@@ -240,7 +245,7 @@ export async function generateOpenApi({
         ? raw 
         : prefix + raw;
       const route = routeWithPrefix.replace(/:([^/]+)/g, "{$1}");
-      console.log("🔍 Processing route:", raw, "->", routeWithPrefix, "->", route);
+      debug("Processing route: %s -> %s -> %s", raw, routeWithPrefix, route);
       if (!paths[route]) paths[route] = {};
 
       // === NEW: get the RHS TypeLiteralNode properly ===
@@ -259,9 +264,9 @@ export async function generateOpenApi({
         const docKey = `${http}:${raw}`; // Use the original route, not the prefixed one
         const docConfig = docLookup.get(docKey);
         
-        console.log(`🔍 Looking for doc() middleware with key: ${docKey}`);
+        debug("Looking for doc() middleware with key: %s", docKey);
         if (docConfig) {
-          console.log(`🔍 Found doc() middleware for ${http.toUpperCase()} ${raw}:`, docConfig);
+          debug("Found doc() middleware for %s %s: %o", http.toUpperCase(), raw, docConfig);
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -335,6 +340,6 @@ export async function generateOpenApi({
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, JSON.stringify(spec, null, 2), "utf-8");
-  console.log(`✅ OpenAPI written to ${outputPath}`);
+  debug("Generated OpenAPI spec for %s -> %s", apiGroup.appTypePath, outputPath);
   return { openApiPath: outputPath };
 }

@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import createDebug from "debug";
 import type { ApiGroup, GenerateParams } from "../types";
 import { normalizeImportPaths } from "../utils/format";
+
+const debug = createDebug("hono-docs");
 
 export async function generateTypes({
   config,
@@ -35,6 +38,6 @@ export async function generateTypes({
   const preContent = config.preDefineTypeContent || "";
 
   fs.writeFileSync(outputPath, `${preContent}\n${result}`, "utf-8");
-  console.log(`✅ Wrote: ${outputPath}`);
+  debug("Generated types for %s -> %s", apiGroup.appTypePath, outputPath);
   return { appTypePath: outputPath, name: fileName };
 }

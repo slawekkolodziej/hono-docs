@@ -1,4 +1,7 @@
+import createDebug from "debug";
 import { SourceFile, SyntaxKind, CallExpression } from "ts-morph";
+
+const debug = createDebug("hono-docs");
 
 export interface DocConfig {
   summary?: string
@@ -55,14 +58,14 @@ export function extractDocumentationFromMiddleware(sourceFile: SourceFile): Rout
                     docConfig: docConfig
                   });
                   
-                  console.log(`🔍 Found doc() middleware for ${methodName.toUpperCase()} ${route}:`, docConfig);
+                  debug("Found doc() middleware for %s %s: %o", methodName.toUpperCase(), route, docConfig);
                 }
               }
             }
           }
         }
       } catch (error) {
-        console.warn(`⚠️ Error processing call expression: ${error}`);
+        debug("Error processing call expression: %s", error);
         continue;
       }
     }
@@ -103,7 +106,7 @@ function findDocMiddlewareInArgs(args: any[]): DocConfig | null {
         }
       }
     } catch (error) {
-      console.warn(`⚠️ Error processing middleware argument: ${error}`);
+      debug("Error processing middleware argument: %s", error);
       continue;
     }
   }
@@ -170,7 +173,7 @@ function parseDocConfigObject(objectNode: any): DocConfig {
       }
     }
   } catch (error) {
-    console.warn(`⚠️ Error parsing doc config object: ${error}`);
+    debug("Error parsing doc config object: %s", error);
   }
   
   return config;

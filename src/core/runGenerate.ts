@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path, { resolve } from "node:path";
+import createDebug from "debug";
 import { Project } from "ts-morph";
 import { loadConfig } from "../config/loadConfig";
 import { generateTypes } from "./generateTypes";
@@ -8,11 +9,13 @@ import { Api } from "../types";
 import { cleanDefaultResponse, sanitizeApiPrefix } from "../utils/format";
 import { getLibDir } from "../utils/libDir";
 
+const debug = createDebug("hono-docs");
+
 export async function runGenerate(configPath: string) {
   const config = await loadConfig(configPath);
 
   const rootPath = process.cwd();
-  console.log("Initializing ts-morph with tsConfig:", config.tsConfigPath);
+  debug("Initializing ts-morph with tsConfig: %s", config.tsConfigPath);
   const project = new Project({
     tsConfigFilePath: resolve(rootPath, config.tsConfigPath),
   });
@@ -25,7 +28,7 @@ export async function runGenerate(configPath: string) {
   //   : // : path.dirname(require.resolve("@rcmade/hono-docs/package.json"));
   //     path.dirname(fileURLToPath(import.meta.url));
   const libDir = getLibDir();
-  console.log("Library root directory:", libDir);
+  debug("Library root directory: %s", libDir);
 
   const apis = config.apis;
 
@@ -48,7 +51,7 @@ export async function runGenerate(configPath: string) {
       outputRoot: snapshotOutputRoot,
     });
 
-     process.stderr.write("🔍 About to call generateOpenApi for: " + snapshotPath.appTypePath + "\n");
+     debug("About to call generateOpenApi for: %s (source: %s)", snapshotPath.appTypePath, apiGroup.appTypePath);
      await generateOpenApi({
        snapshotPath,
        apiGroup,
@@ -56,7 +59,7 @@ export async function runGenerate(configPath: string) {
        fileName: sanitizedName,
        outputRoot: openAPiOutputRoot,
      });
-     process.stderr.write("🔍 generateOpenApi completed for: " + snapshotPath.appTypePath + "\n");
+     debug("generateOpenApi completed for: %s", apiGroup.appTypePath);
   }
 
   const merged = {
@@ -131,5 +134,5 @@ export async function runGenerate(configPath: string) {
 
   fs.writeFileSync(outputPath, `${JSON.stringify(merged, null, 2)}\n`);
 
-  console.log(`✅ Final merged OpenAPI spec written to: ${outputPath}`);
+  console.log(`✅ OpenAPI spec written to: ${outputPath}`);
 }
