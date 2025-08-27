@@ -340,7 +340,7 @@ import { runGenerate, defineConfig } from "@rcmade/hono-docs";
 
 ## Examples
 
-Check out [`examples/basic-app/`](https://github.com/rcmade/hono-docs/tree/main/examples/basic-app) for a minimal setup.
+Check out [`integration-tests/06-manual-routes/`](https://github.com/rcmade/hono-docs/tree/main/integration-tests/06-manual-routes) for a manual route setup example, or browse other patterns in [`integration-tests/`](https://github.com/rcmade/hono-docs/tree/main/integration-tests).
 
 ---
 

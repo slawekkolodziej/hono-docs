@@ -21,5 +21,5 @@
 ## Project Structure
 - `src/` contains source code
 - `dist/` contains built output
-- `examples/` contains example applications
+- `integration-tests/` contains integration test cases and usage examples
 - Use barrel exports (index.ts files) for clean imports
