@@ -1,5 +1,808 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`'02-grouped-simple' - 'Simple grouped app with .route()' > matches snapshot 1`] = `
+{
+  "info": {
+    "title": "Simple Grouped App Test API",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/docs": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docs": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "docs",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /docs",
+        "tags": [
+          "Simple Grouped App",
+        ],
+      },
+    },
+    "/docs/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docId": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "docId",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /docs/{id}",
+        "tags": [
+          "Simple Grouped App",
+        ],
+      },
+    },
+    "/users": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "users": {
+                      "items": {},
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "users",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /users",
+        "tags": [
+          "Simple Grouped App",
+        ],
+      },
+      "post": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "created": {
+                      "oneOf": [
+                        {},
+                        {},
+                      ],
+                    },
+                  },
+                  "required": [
+                    "created",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated POST /users",
+        "tags": [
+          "Simple Grouped App",
+        ],
+      },
+    },
+    "/users/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "userId",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /users/{id}",
+        "tags": [
+          "Simple Grouped App",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "Simple Grouped App",
+    },
+  ],
+}
+`;
+
+exports[`'03-grouped-nested' - 'Nested grouping' > matches snapshot 1`] = `
+{
+  "info": {
+    "title": "Nested Grouped App Test API",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/docs": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docs": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "docs",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /api/docs/",
+        "tags": [
+          "Nested Grouped App",
+        ],
+      },
+    },
+    "/api/docs/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docId": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "docId",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /api/docs/{id}",
+        "tags": [
+          "Nested Grouped App",
+        ],
+      },
+    },
+    "/api/users": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "users": {
+                      "items": {},
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "users",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /api/users/",
+        "tags": [
+          "Nested Grouped App",
+        ],
+      },
+      "post": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "created": {
+                      "oneOf": [
+                        {},
+                        {},
+                      ],
+                    },
+                  },
+                  "required": [
+                    "created",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated POST /api/users/",
+        "tags": [
+          "Nested Grouped App",
+        ],
+      },
+    },
+    "/api/users/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "userId",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /api/users/{id}",
+        "tags": [
+          "Nested Grouped App",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "Nested Grouped App",
+    },
+  ],
+}
+`;
+
+exports[`'04-grouped-complex' - 'Complex grouped app with mixed compos…' > matches snapshot 1`] = `
+{
+  "info": {
+    "title": "Complex Grouped App Test API",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/docs": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docs": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "docs",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /api/v1/docs",
+        "tags": [
+          "Complex Grouped App",
+        ],
+      },
+    },
+    "/api/v1/docs/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docId": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "docId",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /api/v1/docs/{id}",
+        "tags": [
+          "Complex Grouped App",
+        ],
+      },
+    },
+    "/api/v1/users": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "users": {
+                      "items": {},
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "users",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /api/v1/users",
+        "tags": [
+          "Complex Grouped App",
+        ],
+      },
+      "post": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "created": {
+                      "oneOf": [
+                        {},
+                        {},
+                      ],
+                    },
+                  },
+                  "required": [
+                    "created",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated POST /api/v1/users",
+        "tags": [
+          "Complex Grouped App",
+        ],
+      },
+    },
+    "/api/v1/users/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "userId",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /api/v1/users/{id}",
+        "tags": [
+          "Complex Grouped App",
+        ],
+      },
+    },
+    "/auth/login": {
+      "post": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "token",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated POST /auth/login",
+        "tags": [
+          "Complex Grouped App",
+        ],
+      },
+    },
+    "/auth/logout": {
+      "post": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "loggedOut": {
+                      "oneOf": [
+                        {},
+                        {},
+                      ],
+                    },
+                  },
+                  "required": [
+                    "loggedOut",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated POST /auth/logout",
+        "tags": [
+          "Complex Grouped App",
+        ],
+      },
+    },
+    "/health": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "status",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /health",
+        "tags": [
+          "Complex Grouped App",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "Complex Grouped App",
+    },
+  ],
+}
+`;
+
+exports[`'05-grouped-basepath' - 'Grouped app with basePath' > matches snapshot 1`] = `
+{
+  "info": {
+    "title": "BasePath Grouped App Test API",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/v1/docs": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docs": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "docs",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /v1/docs",
+        "tags": [
+          "BasePath Grouped App",
+        ],
+      },
+    },
+    "/v1/docs/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docId": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "docId",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /v1/docs/{id}",
+        "tags": [
+          "BasePath Grouped App",
+        ],
+      },
+    },
+    "/v1/users": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "users": {
+                      "items": {},
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "users",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /v1/users",
+        "tags": [
+          "BasePath Grouped App",
+        ],
+      },
+      "post": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "created": {
+                      "oneOf": [
+                        {},
+                        {},
+                      ],
+                    },
+                  },
+                  "required": [
+                    "created",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated POST /v1/users",
+        "tags": [
+          "BasePath Grouped App",
+        ],
+      },
+    },
+    "/v1/users/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "userId",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /v1/users/{id}",
+        "tags": [
+          "BasePath Grouped App",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "BasePath Grouped App",
+    },
+  ],
+}
+`;
+
 exports[`'basepath-grouped' - 'Grouped app with basePath' > matches snapshot 1`] = `
 {
   "info": {

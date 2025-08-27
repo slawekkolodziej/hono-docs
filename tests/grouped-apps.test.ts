@@ -10,8 +10,8 @@ const cliPath = path.join(rootDir, "dist/cli/index.js");
 
 describe.each([
   {
-    name: "simple-grouped",
-    configPath: "./simple-grouped/hono-docs.config.ts",
+    name: "02-grouped-simple",
+    configPath: "./02-grouped-simple/hono-docs.config.ts",
     description: "Simple grouped app with .route()",
     expectedRoutes: {
       "/docs": ["get"],
@@ -21,8 +21,8 @@ describe.each([
     },
   },
   {
-    name: "basepath-grouped",
-    configPath: "./basepath-grouped/hono-docs.config.ts",
+    name: "05-grouped-basepath",
+    configPath: "./05-grouped-basepath/hono-docs.config.ts",
     description: "Grouped app with basePath",
     expectedRoutes: {
       "/v1/docs": ["get"],
@@ -32,8 +32,8 @@ describe.each([
     },
   },
   {
-    name: "complex-grouped",
-    configPath: "./complex-grouped/hono-docs.config.ts",
+    name: "04-grouped-complex",
+    configPath: "./04-grouped-complex/hono-docs.config.ts",
     description: "Complex grouped app with mixed composition",
     expectedRoutes: {
       "/health": ["get"],
@@ -46,8 +46,8 @@ describe.each([
     },
   },
   {
-    name: "nested-grouped",
-    configPath: "./nested-grouped/hono-docs.config.ts",
+    name: "03-grouped-nested",
+    configPath: "./03-grouped-nested/hono-docs.config.ts",
     description: "Nested grouping",
     expectedRoutes: {
       "/api/docs": ["get"],
