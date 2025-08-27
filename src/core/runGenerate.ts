@@ -48,12 +48,15 @@ export async function runGenerate(configPath: string) {
       outputRoot: snapshotOutputRoot,
     });
 
-    await generateOpenApi({
-      snapshotPath,
-      ...commonParams,
-      fileName: sanitizedName,
-      outputRoot: openAPiOutputRoot,
-    });
+     process.stderr.write("🔍 About to call generateOpenApi for: " + snapshotPath.appTypePath + "\n");
+     await generateOpenApi({
+       snapshotPath,
+       apiGroup,
+       ...commonParams,
+       fileName: sanitizedName,
+       outputRoot: openAPiOutputRoot,
+     });
+     process.stderr.write("🔍 generateOpenApi completed for: " + snapshotPath.appTypePath + "\n");
   }
 
   const merged = {
