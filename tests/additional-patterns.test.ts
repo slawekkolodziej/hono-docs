@@ -66,29 +66,31 @@ describe("simple-router - Non-grouped basic Hono app", () => {
   const testCaseDir = path.dirname(configPathFull);
   const outputPath = path.resolve(testCaseDir, "openapi.json");
 
-  test("currently fails due to type extraction limitations", () => {
-    // LIMITATION: Simple Hono apps without .route() don't generate typed route schemas
+  test("generates empty OpenAPI due to BlankSchema limitation", () => {
+    // CURRENT STATUS: Simple Hono apps generate BlankSchema instead of typed routes
     // 
-    // The issue is that plain method chaining like:
-    //   const app = new Hono().get("/users", handler)
+    // We now handle this gracefully by detecting BlankSchema and falling back,
+    // but the source parsing implementation is not yet complete.
+    //
+    // The generated OpenAPI will be valid but empty (no paths).
     // 
-    // Generates: Hono<BlankEnv, BlankSchema, "/">
-    // Instead of: Hono<Env, TypedRouteSchema, BasePath>
-    //
-    // Possible solutions:
-    // 1. Add support for BlankSchema -> runtime route extraction
-    // 2. Require users to use .route() pattern even for simple apps  
-    // 3. Use Hono's typed routing with explicit schemas
-    //
-    // For now, this documents the current limitation.
+    // WORKAROUND: Users can wrap simple routes with .route():
+    //   const app = new Hono().route("/", simpleRoutes);
     
-    expect(() => {
-      execSync(`node ${cliPath} generate --config ${configPathFull}`, {
-        stdio: "pipe",
-        cwd: testCaseDir,
-      });
-    }).toThrow();
+    // This should no longer throw - it should generate empty OpenAPI
+    execSync(`node ${cliPath} generate --config ${configPathFull}`, {
+      stdio: "pipe", 
+      cwd: testCaseDir,
+    });
 
-    expect(fs.existsSync(outputPath)).toBe(false);
+    expect(fs.existsSync(outputPath)).toBe(true);
+    
+    const output = JSON.parse(fs.readFileSync(outputPath, "utf-8"));
+    expect(output).toHaveProperty("openapi");
+    expect(output).toHaveProperty("info");
+    expect(output).toHaveProperty("paths");
+    
+    // Currently generates empty paths due to unimplemented source parsing
+    expect(Object.keys(output.paths)).toHaveLength(0);
   });
 });
