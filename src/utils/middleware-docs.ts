@@ -3,6 +3,41 @@ import { SourceFile, SyntaxKind, CallExpression } from "ts-morph";
 
 const debug = createDebug("hono-docs");
 
+/**
+ * Simple dedent implementation to remove common leading whitespace
+ * Similar to the dedent npm package but implemented for our static analysis use case
+ */
+function dedent(text: string): string {
+  // Split into lines
+  const lines = text.split('\n');
+  
+  // Remove leading and trailing empty lines
+  while (lines.length && lines[0].trim() === '') {
+    lines.shift();
+  }
+  while (lines.length && lines[lines.length - 1].trim() === '') {
+    lines.pop();
+  }
+  
+  if (lines.length === 0) return '';
+  
+  // Find the minimum indentation (excluding empty lines)
+  let minIndent = Infinity;
+  for (const line of lines) {
+    if (line.trim() !== '') {
+      const indent = line.match(/^[ \t]*/)?.[0]?.length ?? 0;
+      minIndent = Math.min(minIndent, indent);
+    }
+  }
+  
+  // Remove common leading whitespace
+  if (minIndent > 0 && minIndent !== Infinity) {
+    return lines.map(line => line.slice(minIndent)).join('\n');
+  }
+  
+  return lines.join('\n');
+}
+
 export interface DocConfig {
   summary?: string
   description?: string  
@@ -136,12 +171,28 @@ function parseDocConfigObject(objectNode: any): DocConfig {
               case 'summary':
                 if (propValue.getKind() === SyntaxKind.StringLiteral) {
                   config.summary = propValue.getText().replace(/['"]/g, '');
+                } else if (propValue.getKind() === SyntaxKind.NoSubstitutionTemplateLiteral) {
+                  // Handle template literals like `multiline string`
+                  const raw = propValue.getText().replace(/^`|`$/g, '');
+                  config.summary = dedent(raw);
+                } else if (propValue.getKind() === SyntaxKind.TemplateExpression) {
+                  // Handle template literals with expressions like `string ${var}`
+                  const raw = propValue.getText().replace(/^`|`$/g, '');
+                  config.summary = dedent(raw);
                 }
                 break;
                 
               case 'description':
                 if (propValue.getKind() === SyntaxKind.StringLiteral) {
                   config.description = propValue.getText().replace(/['"]/g, '');
+                } else if (propValue.getKind() === SyntaxKind.NoSubstitutionTemplateLiteral) {
+                  // Handle template literals like `multiline string`
+                  const raw = propValue.getText().replace(/^`|`$/g, '');
+                  config.description = dedent(raw);
+                } else if (propValue.getKind() === SyntaxKind.TemplateExpression) {
+                  // Handle template literals with expressions like `string ${var}`
+                  const raw = propValue.getText().replace(/^`|`$/g, '');
+                  config.description = dedent(raw);
                 }
                 break;
                 
