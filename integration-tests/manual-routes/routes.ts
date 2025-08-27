@@ -6,3 +6,4 @@ const userRoutes = new Hono()
   .get("/:id", (c) => c.json({ userId: c.req.param("id") }));
 
 export type AppType = typeof userRoutes;
+export default userRoutes;

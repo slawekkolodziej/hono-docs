@@ -15,3 +15,4 @@ const app = new Hono().route("/", docsRoutes).route("/", userRoutes);
 
 // Export the AppType - this should create a union type internally
 export type AppType = typeof app;
+export default app;

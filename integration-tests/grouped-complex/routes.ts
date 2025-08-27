@@ -23,3 +23,4 @@ const app = new Hono()
 
 // Export the AppType
 export type AppType = typeof app;
+export default app;
