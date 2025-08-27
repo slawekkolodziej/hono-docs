@@ -14,7 +14,7 @@
     "/api/v1/health": {
       "get": {
         "summary": "Health check endpoint",
-        "description": "Returns the current status of the API service",
+        "description": "Returns the current status of the API service\nSometimes can return something else :D\n\n- list item 1\n- list item 2",
         "tags": [
           "Health",
           "Monitoring",
@@ -117,7 +117,7 @@
     "/api/v1/users/{id}": {
       "get": {
         "summary": "Get user by ID",
-        "description": "Retrieve detailed information about a specific user by their unique ID",
+        "description": "# Retrieve detailed information about a specific user by their unique ID\n\nhello",
         "tags": [
           "Users",
           "Middleware Docs Test"
@@ -191,6 +191,47 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/docs": {
+      "get": {
+        "summary": "Auto-generated GET /docs",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {},
+                    {}
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Middleware Docs Test"
+        ]
+      }
+    },
+    "/api/v1/open-api": {
+      "get": {
+        "summary": "Auto-generated GET /open-api",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Middleware Docs Test"
+        ]
       }
     }
   }
