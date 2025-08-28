@@ -13,5 +13,9 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src", "tests", "integration-tests"]
+  "include": [
+    "src",
+    "tests",
+    "integration-tests"
+  ]
 }
