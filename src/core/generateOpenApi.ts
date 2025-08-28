@@ -35,8 +35,7 @@ const debug = createDebug("hono-docs");
  * This handles cases where simple Hono apps generate BlankSchema instead of typed routes
  */
 function extractSimpleRoutesFromSource(
-  sourceFile: SourceFile, 
-  apiGroup: ApiGroup
+  sourceFile: SourceFile
 ): Record<string, Record<string, any>> {
   debug("Parsing simple routes from source code");
   
@@ -302,12 +301,19 @@ export async function generateOpenApi({
   } else if (routesNode.isKind(SyntaxKind.ImportType)) {
     // Handle simple routes that generate BlankSchema (fallback to source parsing)  
     debug("Detected ImportType (likely BlankSchema), attempting source code parsing for simple routes");
-    const simpleRoutes = extractSimpleRoutesFromSource(sf, apiGroup);
     
-    // If we found simple routes, we'll add them to paths after it's created
+    // Load the original source file (not the snapshot) to extract simple routes
+    const originalSf = project.addSourceFileAtPath(
+      path.resolve(rootPath, apiGroup.appTypePath)
+    );
+    const simpleRoutes = extractSimpleRoutesFromSource(originalSf);
+    
+    // Store the simple routes to add them directly to paths later
     if (Object.keys(simpleRoutes).length > 0) {
-      // Store the simple routes to add them after paths object is created
+      debug("Found %d simple routes, will add directly to paths", Object.keys(simpleRoutes).length);
       (literalsWithPrefixes as any).simpleRoutes = simpleRoutes;
+    } else {
+      debug("No simple routes found in source file");
     }
     
   } else {
@@ -318,6 +324,48 @@ export async function generateOpenApi({
 
   const paths: OpenAPI = {};
 
+  // Add simple routes if we found any (BlankSchema fallback case)
+  const simpleRoutes = (literalsWithPrefixes as any).simpleRoutes;
+  if (simpleRoutes) {
+    debug("Adding %d simple routes to paths", Object.keys(simpleRoutes).length);
+    for (const [routePath, methods] of Object.entries(simpleRoutes)) {
+      debug("Processing simple route: %s with apiPrefix: %s", routePath, apiGroup.apiPrefix);
+      // Add the API prefix to the route path (avoid double slashes)
+      let prefixedPath: string;
+      if (apiGroup.apiPrefix === "/" || apiGroup.apiPrefix === "") {
+        prefixedPath = routePath;
+      } else {
+        // Ensure no double slashes
+        prefixedPath = apiGroup.apiPrefix + (routePath.startsWith("/") ? routePath : "/" + routePath);
+      }
+      const normalizedPath = prefixedPath.replace(/:([^/]+)/g, "{$1}");
+      debug("Route transformation: %s -> %s -> %s", routePath, prefixedPath, normalizedPath);
+      
+      if (!paths[normalizedPath]) {
+        paths[normalizedPath] = {};
+      }
+      
+      for (const [method, operation] of Object.entries(methods as Record<string, any>)) {
+        // Check for doc() middleware documentation for this route and method
+        const docKey = `${method}:${routePath}`;
+        const docConfig = docLookup.get(docKey);
+        
+        if (docConfig) {
+          debug("Applying doc() middleware to simple route %s %s", method.toUpperCase(), routePath);
+          operation.summary = docConfig.summary || operation.summary;
+          if (docConfig.description) operation.description = docConfig.description;
+          if (docConfig.tags && docConfig.tags.length > 0) operation.tags = docConfig.tags;
+          if (docConfig.deprecated) operation.deprecated = true;
+        } else {
+          // Add default tag from API group if no doc() middleware tags
+          operation.tags = [apiGroup.name];
+        }
+        
+        paths[normalizedPath][method] = operation;
+      }
+    }
+  }
+
   for (const { literal: lit, prefix } of literalsWithPrefixes) {
     debug("Processing literal with prefix: %s", prefix);
     for (const member of lit.getMembers()) {
@@ -326,9 +374,15 @@ export async function generateOpenApi({
       // Extract route string and normalize to OpenAPI path syntax
       const raw = routeProp.getNameNode().getText().replace(/"/g, "");
       // Normalize path concatenation to avoid double slashes
-      const routeWithPrefix = (prefix === "/" || prefix === "") 
-        ? raw 
-        : prefix + raw;
+      let routeWithPrefix: string;
+      if (prefix === "/" || prefix === "") {
+        routeWithPrefix = raw;
+      } else if (raw === "/") {
+        // Special case: root route should not add trailing slash to prefix
+        routeWithPrefix = prefix;
+      } else {
+        routeWithPrefix = prefix + raw;
+      }
       const route = routeWithPrefix.replace(/:([^/]+)/g, "{$1}");
       debug("Processing route: %s -> %s -> %s", raw, routeWithPrefix, route);
       if (!paths[route]) paths[route] = {};

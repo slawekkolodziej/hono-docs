@@ -98,8 +98,16 @@ export async function runGenerate(configPath: string) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const [pathKey, operations] of Object.entries<any>(json.paths)) {
-      const prefixedPath =
-        path.posix.join(apiGroup.apiPrefix, pathKey).replace(/\/+$/, "") || "/";
+      // Check if pathKey already has the prefix to avoid double-prefixing
+      let prefixedPath: string;
+      if (pathKey.startsWith(apiGroup.apiPrefix)) {
+        // Path already has prefix (e.g., from simple router fallback)
+        prefixedPath = pathKey;
+      } else {
+        // Add prefix to path
+        prefixedPath = path.posix.join(apiGroup.apiPrefix, pathKey).replace(/\/+$/, "") || "/";
+      }
+      
       if (!merged.paths[prefixedPath]) merged.paths[prefixedPath] = {};
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
