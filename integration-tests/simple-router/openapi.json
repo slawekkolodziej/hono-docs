@@ -10,5 +10,100 @@
       "name": "Simple Router"
     }
   ],
-  "paths": {}
+  "paths": {
+    "/api/users": {
+      "get": {
+        "summary": "Auto-generated GET /users",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Router"
+        ]
+      },
+      "post": {
+        "summary": "Auto-generated POST /users",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Router"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "summary": "Auto-generated GET /users/{id}",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Router"
+        ]
+      },
+      "put": {
+        "summary": "Auto-generated PUT /users/{id}",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Router"
+        ]
+      },
+      "delete": {
+        "summary": "Auto-generated DELETE /users/{id}",
+        "responses": {
+          "default": {
+            "description": "Default fallback response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Simple Router"
+        ]
+      }
+    }
+  }
 }

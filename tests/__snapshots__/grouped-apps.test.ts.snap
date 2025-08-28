@@ -475,7 +475,7 @@ exports[`'grouped-nested' - 'Nested grouping' > matches snapshot 1`] = `
             "description": "Default fallback response",
           },
         },
-        "summary": "Auto-generated GET /api/docs/",
+        "summary": "Auto-generated GET /api/docs",
         "tags": [
           "Nested Grouped App",
         ],
@@ -542,7 +542,7 @@ exports[`'grouped-nested' - 'Nested grouping' > matches snapshot 1`] = `
             "description": "Default fallback response",
           },
         },
-        "summary": "Auto-generated GET /api/users/",
+        "summary": "Auto-generated GET /api/users",
         "tags": [
           "Nested Grouped App",
         ],
@@ -571,7 +571,7 @@ exports[`'grouped-nested' - 'Nested grouping' > matches snapshot 1`] = `
             "description": "Default fallback response",
           },
         },
-        "summary": "Auto-generated POST /api/users/",
+        "summary": "Auto-generated POST /api/users",
         "tags": [
           "Nested Grouped App",
         ],

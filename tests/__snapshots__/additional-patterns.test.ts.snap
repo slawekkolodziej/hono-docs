@@ -88,3 +88,115 @@ exports[`manual-routes - Manual API definitions with overrides > matches snapsho
   ],
 }
 `;
+
+exports[`simple-router - Non-grouped basic Hono app > matches complete simple router structure snapshot 1`] = `
+{
+  "info": {
+    "description": "Simple non-grouped router pattern test",
+    "title": "Simple Router Test API",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/users": {
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /users",
+        "tags": [
+          "Simple Router",
+        ],
+      },
+      "post": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated POST /users",
+        "tags": [
+          "Simple Router",
+        ],
+      },
+    },
+    "/api/users/{id}": {
+      "delete": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated DELETE /users/{id}",
+        "tags": [
+          "Simple Router",
+        ],
+      },
+      "get": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated GET /users/{id}",
+        "tags": [
+          "Simple Router",
+        ],
+      },
+      "put": {
+        "responses": {
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Default fallback response",
+          },
+        },
+        "summary": "Auto-generated PUT /users/{id}",
+        "tags": [
+          "Simple Router",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "Simple Router",
+    },
+  ],
+}
+`;
