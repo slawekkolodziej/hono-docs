@@ -66,18 +66,14 @@ describe("simple-router - Non-grouped basic Hono app", () => {
   const testCaseDir = path.dirname(configPathFull);
   const outputPath = path.resolve(testCaseDir, "openapi.json");
 
-  test("generates empty OpenAPI due to BlankSchema limitation", () => {
-    // CURRENT STATUS: Simple Hono apps generate BlankSchema instead of typed routes
+  test("generates complete OpenAPI spec with simple router support", () => {
+    // FIXED: Simple Hono apps now work! 
     // 
-    // We now handle this gracefully by detecting BlankSchema and falling back,
-    // but the source parsing implementation is not yet complete.
+    // When TypeScript generates BlankSchema for simple apps, we fall back to 
+    // source code parsing to extract routes directly from the AST.
     //
-    // The generated OpenAPI will be valid but empty (no paths).
-    // 
-    // WORKAROUND: Users can wrap simple routes with .route():
-    //   const app = new Hono().route("/", simpleRoutes);
+    // This generates complete OpenAPI with all routes and HTTP methods.
     
-    // This should no longer throw - it should generate empty OpenAPI
     execSync(`node ${cliPath} generate --config ${configPathFull}`, {
       stdio: "pipe", 
       cwd: testCaseDir,
@@ -90,7 +86,88 @@ describe("simple-router - Non-grouped basic Hono app", () => {
     expect(output).toHaveProperty("info");
     expect(output).toHaveProperty("paths");
     
-    // Currently generates empty paths due to unimplemented source parsing
-    expect(Object.keys(output.paths)).toHaveLength(0);
+    // Now generates complete paths from source parsing
+    expect(Object.keys(output.paths)).toHaveLength(2); // /api/users and /api/users/{id}
+    
+    // Verify the generated routes match our simple router implementation
+    expect(output.paths).toHaveProperty("/api/users");
+    expect(output.paths).toHaveProperty("/api/users/{id}");
+    
+    // Verify HTTP methods are detected
+    expect(output.paths["/api/users"]).toHaveProperty("get");
+    expect(output.paths["/api/users"]).toHaveProperty("post"); 
+    expect(output.paths["/api/users/{id}"]).toHaveProperty("get");
+    expect(output.paths["/api/users/{id}"]).toHaveProperty("put");
+    expect(output.paths["/api/users/{id}"]).toHaveProperty("delete");
+    
+    // Verify proper tagging from API group
+    expect(output.paths["/api/users"].get.tags).toEqual(["Simple Router"]);
+    expect(output.paths["/api/users/{id}"].get.tags).toEqual(["Simple Router"]);
+  });
+
+  test("validates complete OpenAPI structure for simple router", () => {
+    // This test documents the expected behavior once source parsing is implemented
+    // for simple Hono apps that don't use .route() grouping
+    
+    execSync(`node ${cliPath} generate --config ${configPathFull}`, {
+      stdio: "pipe",
+      cwd: testCaseDir,
+    });
+
+    const output = JSON.parse(fs.readFileSync(outputPath, "utf-8"));
+
+    // Basic structure validation
+    expect(output).toHaveProperty("openapi", "3.0.0");
+    expect(output).toHaveProperty("info");
+    expect(output.info).toEqual({
+      title: "Simple Router Test API",
+      version: "1.0.0",
+      description: "Simple non-grouped router pattern test"
+    });
+
+    // Tags should be generated from API group name
+    expect(output).toHaveProperty("tags");
+    expect(output.tags).toContainEqual({
+      name: "Simple Router"
+    });
+
+    // All routes from routes.ts should be present
+    expect(output.paths).toHaveProperty("/api/users");
+    expect(output.paths).toHaveProperty("/api/users/{id}");
+
+    // Validate GET /api/users route
+    const getUsersRoute = output.paths["/api/users"].get;
+    expect(getUsersRoute).toBeDefined();
+    expect(getUsersRoute.tags).toEqual(["Simple Router"]);
+    expect(getUsersRoute.responses).toHaveProperty("default");
+    expect(getUsersRoute.responses["default"]).toHaveProperty("content");
+
+    // Validate GET /api/users/{id} route
+    const getUserByIdRoute = output.paths["/api/users/{id}"].get;
+    expect(getUserByIdRoute).toBeDefined();
+    expect(getUserByIdRoute.tags).toEqual(["Simple Router"]);
+    // Note: Simple router fallback doesn't generate parameter schemas from source parsing
+
+    // Validate POST /api/users route
+    const postUsersRoute = output.paths["/api/users"].post;
+    expect(postUsersRoute).toBeDefined();
+    expect(postUsersRoute.tags).toEqual(["Simple Router"]);
+    expect(postUsersRoute.responses).toHaveProperty("default");
+    // Note: Simple router fallback doesn't parse request bodies from source
+
+    // Validate PUT /api/users/{id} route
+    const putUserByIdRoute = output.paths["/api/users/{id}"].put;
+    expect(putUserByIdRoute).toBeDefined();
+    expect(putUserByIdRoute.tags).toEqual(["Simple Router"]);
+
+    // Validate DELETE /api/users/{id} route
+    const deleteUserByIdRoute = output.paths["/api/users/{id}"].delete;
+    expect(deleteUserByIdRoute).toBeDefined();
+    expect(deleteUserByIdRoute.tags).toEqual(["Simple Router"]);
+  });
+
+  test("matches complete simple router structure snapshot", () => {
+    const output = JSON.parse(fs.readFileSync(outputPath, "utf-8"));
+    expect(output).toMatchSnapshot();
   });
 });
