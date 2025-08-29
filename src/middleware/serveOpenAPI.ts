@@ -12,6 +12,12 @@ export interface ServeOpenAPIConfig {
   config?: string;
   
   /**
+   * Path to the OpenAPI JSON file to serve.
+   * If not provided, will be determined from the config file.
+   */
+  outputPath?: string;
+  
+  /**
    * Whether to regenerate the OpenAPI spec if the file is missing.
    * Defaults to true.
    */
@@ -52,21 +58,36 @@ function findConfigFile(): string | undefined {
  */
 export const serveOpenAPI = (options: ServeOpenAPIConfig = {}) => {
   return createMiddleware(async (c) => {
-    const { config: configPath, regenerate = true } = options;
+    const { config: configPath, outputPath: customOutputPath, regenerate = true } = options;
     
     try {
-      // Auto-detect config file if not provided
-      const resolvedConfigPath = configPath || findConfigFile();
+      let outputPath: string;
+      let resolvedConfigPath: string | undefined;
       
-      if (!resolvedConfigPath) {
-        return c.json({ 
-          error: "No hono-docs config file found. Expected hono-docs.config.ts, hono-docs.config.js, or hono-docs.config.mjs" 
-        }, 500);
+      // If output path is provided directly, use it
+      if (customOutputPath) {
+        outputPath = path.resolve(process.cwd(), customOutputPath);
+      } else {
+        // Try ./openapi.json first before loading config
+        const defaultPath = path.join(process.cwd(), 'openapi.json');
+        
+        if (fs.existsSync(defaultPath)) {
+          outputPath = defaultPath;
+        } else {
+          // Need to load config to determine output path
+          resolvedConfigPath = configPath || findConfigFile();
+          
+          if (!resolvedConfigPath) {
+            return c.json({ 
+              error: "No hono-docs config file found. Expected hono-docs.config.ts, hono-docs.config.js, or hono-docs.config.mjs" 
+            }, 500);
+          }
+          
+          // Load config to get output path
+          const config = await loadConfig(resolvedConfigPath);
+          outputPath = path.join(process.cwd(), config.outputs.openApiJson);
+        }
       }
-      
-      // Load config to get output path
-      const config = await loadConfig(resolvedConfigPath);
-      const outputPath = path.join(process.cwd(), config.outputs.openApiJson);
       
       // Check if OpenAPI file exists
       if (!fs.existsSync(outputPath)) {
@@ -74,6 +95,17 @@ export const serveOpenAPI = (options: ServeOpenAPIConfig = {}) => {
           return c.json({ 
             error: `OpenAPI spec not found at ${outputPath}. Set regenerate: true to auto-generate.` 
           }, 404);
+        }
+        
+        // Need config file for generation
+        if (!resolvedConfigPath) {
+          resolvedConfigPath = configPath || findConfigFile();
+          
+          if (!resolvedConfigPath) {
+            return c.json({ 
+              error: "No hono-docs config file found. Cannot generate OpenAPI spec." 
+            }, 500);
+          }
         }
         
         console.log("🔄 OpenAPI spec not found, generating...");

@@ -45,14 +45,14 @@ describe("serveOpenAPI middleware", () => {
     vi.restoreAllMocks();
   });
 
-  test("serves existing OpenAPI JSON file", async () => {
+  test("serves existing OpenAPI JSON file from default path", async () => {
     const openApiContent = {
       openapi: "3.0.0",
       info: { title: "Test API", version: "1.0.0" },
       paths: {}
     };
     
-    mockedFs.existsSync.mockReturnValue(true);
+    mockedFs.existsSync.mockReturnValue(true); // ./openapi.json exists
     mockedFs.readFileSync.mockReturnValue(JSON.stringify(openApiContent));
     
     const app = new Hono().get('/openapi.json', serveOpenAPI());
@@ -68,14 +68,40 @@ describe("serveOpenAPI middleware", () => {
     
     // Should not call runGenerate since file exists
     expect(mockedRunGenerate).not.toHaveBeenCalled();
+    // Should check the default path
+    expect(mockedFs.existsSync).toHaveBeenCalledWith('/test/project/openapi.json');
   });
 
-  test("auto-detects and uses hono-docs.config.ts", async () => {
+  test("serves existing OpenAPI JSON file from custom outputPath", async () => {
+    const openApiContent = {
+      openapi: "3.0.0",
+      info: { title: "Custom API", version: "1.0.0" },
+      paths: {}
+    };
+    
+    mockedFs.existsSync.mockReturnValue(true);
+    mockedFs.readFileSync.mockReturnValue(JSON.stringify(openApiContent));
+    
+    const app = new Hono().get('/api-spec.json', serveOpenAPI({ outputPath: './custom-spec.json' }));
+    
+    const response = await app.request('/api-spec.json');
+    
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toEqual(openApiContent);
+    
+    // Should check the custom path
+    expect(mockedFs.existsSync).toHaveBeenCalledWith('/test/project/custom-spec.json');
+    expect(mockedFs.readFileSync).toHaveBeenCalledWith('/test/project/custom-spec.json', 'utf-8');
+  });
+
+  test("auto-detects config when default openapi.json doesn't exist", async () => {
     const openApiContent = { openapi: "3.0.0", info: { title: "Test", version: "1.0.0" } };
     
     mockedFs.existsSync
-      .mockReturnValueOnce(true) // hono-docs.config.ts exists
-      .mockReturnValueOnce(true); // openapi.json exists
+      .mockReturnValueOnce(false) // ./openapi.json doesn't exist
+      .mockReturnValueOnce(true)  // hono-docs.config.ts exists
+      .mockReturnValueOnce(true); // config-specified openapi.json exists
     mockedFs.readFileSync.mockReturnValue(JSON.stringify(openApiContent));
     
     const app = new Hono().get('/openapi.json', serveOpenAPI());
