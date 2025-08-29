@@ -169,8 +169,8 @@ describe("simple-router - Non-grouped basic Hono app", () => {
     const postUsersRoute = output.paths["/api/users"].post;
     expect(postUsersRoute).toBeDefined();
     expect(postUsersRoute.tags).toEqual(["Simple Router"]);
-    expect(postUsersRoute.responses).toHaveProperty("default");
-    // Note: Simple router fallback doesn't parse request bodies from source
+    expect(postUsersRoute.responses).toHaveProperty("201");
+    // Note: With proper method chaining, TypeScript can infer response types and status codes
 
     // Validate PUT /api/users/{id} route
     const putUserByIdRoute = output.paths["/api/users/{id}"].put;
