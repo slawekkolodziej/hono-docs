@@ -1,8 +1,6 @@
 // src/cli/loadConfig.ts
 import { resolve } from "path";
 import { existsSync } from "fs";
-// <-- import tsImport from tsx:
-import { tsImport } from "tsx/esm/api";
 import type { HonoDocsConfig } from "../types";
 import { unwrapModule } from "../utils/libDir";
 
@@ -13,11 +11,9 @@ export async function loadConfig(configFile: string): Promise<HonoDocsConfig> {
     throw new Error(`[hono-docs] Config file not found: ${fullPath}`);
   }
 
-  // 2. Dynamically load the config via tsx's tsImport()
   let configModule: unknown;
   try {
-    // tsImport(filePath, importMetaUrl) returns the loaded module
-    configModule = await tsImport(fullPath, import.meta.url);
+    configModule = await import(fullPath);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     throw new Error(

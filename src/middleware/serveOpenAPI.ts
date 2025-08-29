@@ -25,14 +25,15 @@ export interface ServeOpenAPIConfig {
 }
 
 /**
- * Auto-detect hono-docs config file from common locations
+ * Auto-detect hono-docs config file from common locations.
+ * Prioritizes JS/MJS over TS for better runtime compatibility.
  */
 function findConfigFile(): string | undefined {
   const rootPath = process.cwd();
   const possibleConfigs = [
-    'hono-docs.config.ts',
-    'hono-docs.config.js',
-    'hono-docs.config.mjs'
+    'hono-docs.config.js',   // Try JS first (best runtime compatibility)
+    'hono-docs.config.mjs',  // Then MJS (ES modules)
+    'hono-docs.config.ts'    // TS as last resort (requires transpiler)
   ];
   
   for (const config of possibleConfigs) {
@@ -67,7 +68,7 @@ export const serveOpenAPI = (options: ServeOpenAPIConfig = {}) => {
       // If output path is provided directly, use it
       if (customOutputPath) {
         outputPath = path.resolve(process.cwd(), customOutputPath);
-      } else {
+      } else {        
         // Try ./openapi.json first before loading config
         const defaultPath = path.join(process.cwd(), 'openapi.json');
         
@@ -79,15 +80,18 @@ export const serveOpenAPI = (options: ServeOpenAPIConfig = {}) => {
           
           if (!resolvedConfigPath) {
             return c.json({ 
-              error: "No hono-docs config file found. Expected hono-docs.config.ts, hono-docs.config.js, or hono-docs.config.mjs" 
+              error: "No hono-docs config file found. Expected hono-docs.config.js, hono-docs.config.mjs, or hono-docs.config.ts" 
             }, 500);
           }
           
           // Load config to get output path
           const config = await loadConfig(resolvedConfigPath);
+          
           outputPath = path.join(process.cwd(), config.outputs.openApiJson);
         }
       }
+
+
       
       // Check if OpenAPI file exists
       if (!fs.existsSync(outputPath)) {
