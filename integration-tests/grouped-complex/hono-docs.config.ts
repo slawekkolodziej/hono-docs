@@ -12,10 +12,6 @@ export default defineConfig({
   outputs: {
     openApiJson: "./openapi.json",
   },
-  apis: [
-    {
-      name: "Complex Grouped App",
-      appTypePath: "./routes.ts",
-    },
-  ],
+  name: "Complex Grouped App",
+  appTypePath: "./routes.ts",
 });

@@ -93,9 +93,25 @@ export type HonoDocsConfig = {
   };
 
   /**
-   * List of API groups (routes) to generate docs for.
+   * File path to the module exporting `AppType = typeof routeInstance`.
    */
-  apis: ApiGroup[];
+  appTypePath: string;
+
+  /**
+   * Human-readable name for the API, shown in logs and docs.
+   */
+  name: string;
+
+  /**
+   * Optional list of specific routes to include; if omitted, all from AppType are used.
+   */
+  api?: Api[];
+
+  /**
+   * Optional list of paths to exclude from OpenAPI generation (e.g., documentation routes, health checks).
+   * Supports string literals and regular expressions.
+   */
+  excludePaths?: (string | RegExp)[];
 
   /**
    * Optional raw string content to inject at the top of each generated `.d.ts` snapshot.

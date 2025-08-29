@@ -12,10 +12,6 @@ export default defineConfig({
   outputs: {
     openApiJson: "./openapi.json",
   },
-  apis: [
-    {
-      name: "Nested Grouped App",
-      appTypePath: "./routes.ts",
-    },
-  ],
+  name: "Nested Grouped App",
+  appTypePath: "./routes.ts",
 });

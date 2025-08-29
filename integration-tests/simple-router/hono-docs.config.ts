@@ -13,11 +13,7 @@ export default defineConfig({
   outputs: {
     openApiJson: "./openapi.json",
   },
-  apis: [
-    {
-      name: "Simple Router",
-      appTypePath: "./routes.ts",
-      excludePaths: ["/docs"],
-    },
-  ],
+  name: "Simple Router",
+  appTypePath: "./routes.ts",
+  excludePaths: ["/docs"],
 });

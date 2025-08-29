@@ -14,14 +14,10 @@ export default defineConfig({
   outputs: {
     openApiJson: "./openapi.json",
   },
-  apis: [
-    {
-      name: "User Routes",
-      appTypePath: "./routes.ts",
-      api: [
-        { api: "/user", method: "get", tag: ["UserList"] },
-        { api: "/user/:id", method: "get", tag: ["UserDetail"] },
-      ],
-    },
+  name: "User Routes",
+  appTypePath: "./routes.ts",
+  api: [
+    { api: "/user", method: "get", tag: ["UserList"] },
+    { api: "/user/:id", method: "get", tag: ["UserDetail"] },
   ],
 });

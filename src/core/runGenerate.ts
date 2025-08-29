@@ -41,7 +41,13 @@ export async function runGenerate(configPath: string) {
   const libDir = getLibDir();
   debug("Library root directory: %s", libDir);
 
-  const apis = config.apis;
+  // Create a single API group from the flattened config
+  const apiGroup = {
+    name: config.name,
+    appTypePath: config.appTypePath,
+    api: config.api,
+    excludePaths: config.excludePaths,
+  };
 
   const snapshotOutputRoot = path.resolve(libDir, "output/types");
   const openAPiOutputRoot = path.resolve(libDir, "output/openapi");
@@ -52,89 +58,85 @@ export async function runGenerate(configPath: string) {
     project,
     rootPath,
   };
-  for (const apiGroup of apis) {
-    const sanitizedName = sanitizeFileName(apiGroup.name);
+  
+  const sanitizedName = sanitizeFileName(apiGroup.name);
 
-    const snapshotPath = await generateTypes({
-      ...commonParams,
-      apiGroup: apiGroup,
-      fileName: sanitizedName,
-      outputRoot: snapshotOutputRoot,
-    });
+  const snapshotPath = await generateTypes({
+    ...commonParams,
+    apiGroup: apiGroup,
+    fileName: sanitizedName,
+    outputRoot: snapshotOutputRoot,
+  });
 
-     debug("About to call generateOpenApi for: %s (source: %s)", snapshotPath.appTypePath, apiGroup.appTypePath);
-     await generateOpenApi({
-       snapshotPath,
-       apiGroup,
-       ...commonParams,
-       fileName: sanitizedName,
-       outputRoot: openAPiOutputRoot,
-     });
-     debug("generateOpenApi completed for: %s", apiGroup.appTypePath);
+   debug("About to call generateOpenApi for: %s (source: %s)", snapshotPath.appTypePath, apiGroup.appTypePath);
+   await generateOpenApi({
+     snapshotPath,
+     apiGroup,
+     ...commonParams,
+     fileName: sanitizedName,
+     outputRoot: openAPiOutputRoot,
+   });
+   debug("generateOpenApi completed for: %s", apiGroup.appTypePath);
+
+  // Load the generated OpenAPI file
+  const name = sanitizeFileName(apiGroup.name);
+  const openApiFile = path.join(openAPiOutputRoot, `${name}.json`);
+
+  if (!fs.existsSync(openApiFile)) {
+    throw new Error(`Missing OpenAPI file: ${openApiFile}`);
   }
 
+  const json = JSON.parse(fs.readFileSync(openApiFile, "utf-8"));
+  
   const merged = {
     ...config.openApi,
-    tags: [] as { name: string }[],
+    tags: [{ name: apiGroup.name }],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     paths: {} as Record<string, any>,
   };
 
-  for (const apiGroup of apis) {
-    const name = sanitizeFileName(apiGroup.name);
-    const openApiFile = path.join(openAPiOutputRoot, `${name}.json`);
+  const customApiMap = new Map<string, Api>();
 
-    if (!fs.existsSync(openApiFile)) {
-      console.warn(`⚠️ Missing OpenAPI file: ${openApiFile}`);
-      continue;
+  if (apiGroup?.api) {
+    for (const customApi of apiGroup.api) {
+      const fullPath = customApi.api.replace(/\/+$/, "") || "/";
+      customApiMap.set(
+        `${customApi.method.toLowerCase()} ${fullPath}`,
+        customApi
+      );
     }
+  }
 
-    const json = JSON.parse(fs.readFileSync(openApiFile, "utf-8"));
-    merged.tags.push({ name: apiGroup.name });
-
-    const customApiMap = new Map<string, Api>();
-
-    if (apiGroup?.api) {
-      for (const customApi of apiGroup.api) {
-        const fullPath = customApi.api.replace(/\/+$/, "") || "/";
-        customApiMap.set(
-          `${customApi.method.toLowerCase()} ${fullPath}`,
-          customApi
-        );
-      }
-    }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const [pathKey, operations] of Object.entries<any>(json.paths)) {
+    // Paths now come directly from Hono routes (no additional prefixing)
+    const apiPath = pathKey;
+    
+    if (!merged.paths[apiPath]) merged.paths[apiPath] = {};
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const [pathKey, operations] of Object.entries<any>(json.paths)) {
-      // Paths now come directly from Hono routes (no additional prefixing)
-      const apiPath = pathKey;
-      
-      if (!merged.paths[apiPath]) merged.paths[apiPath] = {};
+    for (const [method, operation] of Object.entries<any>(operations)) {
+      const opKey = `${method.toLowerCase()} ${apiPath}`;
+      const customApi = customApiMap.get(opKey);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      for (const [method, operation] of Object.entries<any>(operations)) {
-        const opKey = `${method.toLowerCase()} ${apiPath}`;
-        const customApi = customApiMap.get(opKey);
-
-        // Override or enrich metadata if defined
-        if (customApi) {
-          operation.summary = customApi.summary || operation.summary;
-          operation.description =
-            customApi.description || operation.description;
-          operation.tags =
-            customApi.tag && customApi.tag.length > 0
-              ? customApi.tag
-              : [apiGroup.name];
-        } else {
-          operation.tags = operation.tags || [];
-          if (!operation.tags.includes(apiGroup.name)) {
-            operation.tags.push(apiGroup.name);
-          }
+      // Override or enrich metadata if defined
+      if (customApi) {
+        operation.summary = customApi.summary || operation.summary;
+        operation.description =
+          customApi.description || operation.description;
+        operation.tags =
+          customApi.tag && customApi.tag.length > 0
+            ? customApi.tag
+            : [apiGroup.name];
+      } else {
+        operation.tags = operation.tags || [];
+        if (!operation.tags.includes(apiGroup.name)) {
+          operation.tags.push(apiGroup.name);
         }
-
-        cleanDefaultResponse(operation, apiPath, method);
-        merged.paths[apiPath][method] = operation;
       }
+
+      cleanDefaultResponse(operation, apiPath, method);
+      merged.paths[apiPath][method] = operation;
     }
   }
 

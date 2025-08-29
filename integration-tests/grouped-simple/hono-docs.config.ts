@@ -12,11 +12,7 @@ export default defineConfig({
   outputs: {
     openApiJson: "./openapi.json",
   },
-  apis: [
-    {
-      name: "Simple Grouped App",
-      appTypePath: "./src/routes.ts",
-      // Intentionally leaving api array empty to test auto-discovery
-    },
-  ],
+  name: "Simple Grouped App",
+  appTypePath: "./src/routes.ts",
+  // Intentionally leaving api array empty to test auto-discovery
 });
