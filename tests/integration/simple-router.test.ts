@@ -12,6 +12,7 @@ describe("manual-routes - Manual API definitions with overrides", () => {
   const configPathFull = path.join(integrationTestsDir, configPath);
   const testCaseDir = path.dirname(configPathFull);
   const outputPath = path.resolve(testCaseDir, "openapi.json");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let output: any = null;
 
   beforeAll(async () => {
