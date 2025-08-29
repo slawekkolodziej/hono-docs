@@ -38,6 +38,23 @@ function normalizePathToOpenApi(path: string): string {
 }
 
 /**
+ * Check if a path should be excluded from OpenAPI generation
+ */
+function isPathExcluded(path: string, excludePaths?: (string | RegExp)[]): boolean {
+  if (!excludePaths || excludePaths.length === 0) {
+    return false;
+  }
+
+  return excludePaths.some(exclude => {
+    if (typeof exclude === 'string') {
+      return path === exclude || path.endsWith(exclude);
+    }
+    // RegExp case
+    return exclude.test(path);
+  });
+}
+
+/**
  * Combine path prefix with route path, avoiding double slashes
  */
 function combinePathWithPrefix(prefix: string, routePath: string): string {
@@ -71,49 +88,7 @@ function applyDocumentationToOperation(
   }
 }
 
-/**
- * Process simple routes extracted from source code and add them to paths
- */
-function processSimpleRoutes(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  simpleRoutes: Record<string, Record<string, any>>,
-  apiGroup: ApiGroup,
-  docLookup: Map<string, import("../utils/middleware-docs").DocConfig>,
-  paths: OpenAPI
-): void {
-  debug("Adding %d simple routes to paths", Object.keys(simpleRoutes).length);
-  
-  for (const [routePath, methods] of Object.entries(simpleRoutes)) {
-    debug("Processing simple route: %s with apiPrefix: %s", routePath, apiGroup.apiPrefix);
-    
-    const prefixedPath = combinePathWithPrefix(apiGroup.apiPrefix, routePath);
-    const normalizedPath = normalizePathToOpenApi(prefixedPath);
-    debug("Route transformation: %s -> %s -> %s", routePath, prefixedPath, normalizedPath);
-    
-    if (!paths[normalizedPath]) {
-      paths[normalizedPath] = {};
-    }
-    
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    for (const [method, operation] of Object.entries(methods as Record<string, any>)) {
-      const docKey = `${method}:${routePath}`;
-      const docConfig = docLookup.get(docKey);
-      
-      if (docConfig) {
-        debug("Applying doc() middleware to simple route %s %s", method.toUpperCase(), routePath);
-      }
-      
-      applyDocumentationToOperation(
-        operation,
-        docConfig,
-        operation.summary,
-        apiGroup.name
-      );
-      
-      paths[normalizedPath][method] = operation;
-    }
-  }
-}
+
 
 /**
  * Process typed routes from TypeLiteral nodes and add them to paths
@@ -133,6 +108,13 @@ function processTypedRoutes(
       
       // Extract route string and normalize to OpenAPI path syntax
       const raw = routeProp.getNameNode().getText().replace(/"/g, "");
+      
+      // Check if this route should be excluded
+      if (isPathExcluded(raw, apiGroup.excludePaths)) {
+        debug("Excluding typed route: %s", raw);
+        continue;
+      }
+      
       const routeWithPrefix = combinePathWithPrefix(prefix, raw);
       const route = normalizePathToOpenApi(routeWithPrefix);
       
@@ -240,11 +222,7 @@ function loadDocumentationFromMiddleware(
  * Parse TypeScript AppType to extract route type information
  */
 function parseAppTypeRoutes(
-  sf: SourceFile,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  project: any,
-  rootPath: string,
-  apiGroup: ApiGroup
+  sf: SourceFile
 ): Array<{ literal: TypeLiteralNode; prefix: string }> {
   const aliasDecl = sf.getTypeAliasOrThrow("AppType");
   const topTypeNode = aliasDecl.getTypeNode();
@@ -284,106 +262,16 @@ function parseAppTypeRoutes(
     debug("Extracted %d TypeLiteral nodes from union", unionLiterals.length);
   } else if (routesNode.isKind(SyntaxKind.TypeLiteral)) {
     literalsWithPrefixes.push({ literal: routesNode as TypeLiteralNode, prefix: "" });
-  } else if (routesNode.isKind(SyntaxKind.ImportType)) {
-    // Handle simple routes that generate BlankSchema (fallback to source parsing)  
-    debug("Detected ImportType (likely BlankSchema), attempting source code parsing for simple routes");
-    
-    // Load the original source file (not the snapshot) to extract simple routes
-    const originalSf = project.addSourceFileAtPath(
-      path.resolve(rootPath, apiGroup.appTypePath)
-    );
-    const simpleRoutes = extractSimpleRoutesFromSource(originalSf);
-    
-    // Store the simple routes to add them directly to paths later
-    if (Object.keys(simpleRoutes).length > 0) {
-      debug("Found %d simple routes, will add directly to paths", Object.keys(simpleRoutes).length);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (literalsWithPrefixes as any).simpleRoutes = simpleRoutes;
-    } else {
-      debug("No simple routes found in source file");
-    }
   } else {
     debug("Routes node kind: %s", routesNode.getKindName());
     debug("Routes node text: %s", routesNode.getText());
-    throw new Error("Routes type is not a literal, intersection, or union of literals");
+    throw new Error("Routes type is not a literal, intersection, or union of literals. Please use method chaining pattern: app.get(...).post(...) for proper TypeScript inference.");
   }
   
   return literalsWithPrefixes;
 }
 
-/**
- * Extract simple routes from source code when type information is insufficient
- * This handles cases where simple Hono apps generate BlankSchema instead of typed routes
- */
-function extractSimpleRoutesFromSource(
-  sourceFile: SourceFile
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Record<string, Record<string, any>> {
-  debug("Parsing simple routes from source code");
-  
-  // Find all call expressions in the source file
-  const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const routes: Record<string, Record<string, any>> = {};
-  
-  for (const call of callExpressions) {
-    try {
-      const expression = call.getExpression();
-      
-      // Look for method access expressions like .get(), .post(), etc.
-      if (expression.getKind() === SyntaxKind.PropertyAccessExpression) {
-        const propertyAccess = expression.asKind(SyntaxKind.PropertyAccessExpression)!;
-        const methodName = propertyAccess.getName().toLowerCase();
-        
-        // Check if it's an HTTP method
-        const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
-        if (httpMethods.includes(methodName)) {
-          const args = call.getArguments();
-          if (args.length >= 2) {
-            const routeArg = args[0];
-            
-            // Extract the route path
-            if (routeArg.getKind() === SyntaxKind.StringLiteral) {
-              const routePath = routeArg.getText().replace(/['"]/g, '');
-              const normalizedPath = routePath.replace(/:([^/]+)/g, '{$1}');
-              
-              if (!routes[normalizedPath]) {
-                routes[normalizedPath] = {};
-              }
-              
-              routes[normalizedPath][methodName] = {
-                summary: `Auto-generated ${methodName.toUpperCase()} ${normalizedPath}`,
-                responses: {
-                  "default": {
-                    description: "Default fallback response", 
-                    content: {
-                      "application/json": {
-                        schema: { type: "object" }
-                      }
-                    }
-                  }
-                }
-              };
-              
-              debug("Found simple route: %s %s", methodName.toUpperCase(), routePath);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      debug("Error processing call expression: %s", error);
-      continue;
-    }
-  }
-  
-  if (Object.keys(routes).length > 0) {
-    debug("Successfully parsed %d routes from source", Object.keys(routes).length);
-  } else {
-    debug("No simple routes found in source");
-  }
-  
-  return routes;
-}
+
 
 /**
  * CORE ALGORITHM: Extract TypeLiteral nodes with path prefixes from Hono's complex type structures
@@ -399,13 +287,12 @@ function extractSimpleRoutesFromSource(
  * ```
  * 
  * This results in union types like:
- * BlankSchema | MergeSchemaPath<ApiSchema, "/api"> | MergeSchemaPath<AuthSchema, "/auth">
+ * MergeSchemaPath<ApiSchema, "/api"> | MergeSchemaPath<AuthSchema, "/auth">
  * 
  * We need to:
- * 1. Skip BlankSchema (empty base schema)
- * 2. Extract schemas from MergeSchemaPath and combine them with their path prefixes
- * 3. Handle nested unions/intersections recursively
- * 4. Return all TypeLiteral nodes (route definitions) with their full path prefixes
+ * 1. Extract schemas from MergeSchemaPath and combine them with their path prefixes
+ * 2. Handle nested unions/intersections recursively  
+ * 3. Return all TypeLiteral nodes (route definitions) with their full path prefixes
  */
 function extractTypeLiteralsFromUnion(unionNode: TypeNode, currentPrefix: string = ""): Array<{ literal: TypeLiteralNode; prefix: string }> {
   const literals: Array<{ literal: TypeLiteralNode; prefix: string }> = [];
@@ -436,7 +323,7 @@ function extractTypeLiteralsFromUnion(unionNode: TypeNode, currentPrefix: string
         }
         debug("ImportType qualifier name: %s", qualifierName);
 
-        // Only process MergeSchemaPath, skip BlankSchema
+        // Only process MergeSchemaPath
         if (qualifierName === "MergeSchemaPath") {
           const typeArgs = importType.getTypeArguments();
           debug("MergeSchemaPath typeArgs: %d", typeArgs.length);
@@ -471,7 +358,6 @@ function extractTypeLiteralsFromUnion(unionNode: TypeNode, currentPrefix: string
         } else {
           debug("Skipping non-MergeSchemaPath: %s", qualifierName);
         }
-        // BlankSchema is intentionally skipped (empty schema)
       }
     } else if (member.isKind(SyntaxKind.IntersectionType)) {
       debug("Processing IntersectionType in union");
@@ -531,16 +417,9 @@ export async function generateOpenApi({
   const docLookup = loadDocumentationFromMiddleware(project, rootPath, apiGroup);
   
   // Parse TypeScript AppType to extract route information  
-  const literalsWithPrefixes = parseAppTypeRoutes(sf, project, rootPath, apiGroup);
+  const literalsWithPrefixes = parseAppTypeRoutes(sf);
 
   const paths: OpenAPI = {};
-
-  // Add simple routes if we found any (BlankSchema fallback case)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const simpleRoutes = (literalsWithPrefixes as any).simpleRoutes;
-  if (simpleRoutes) {
-    processSimpleRoutes(simpleRoutes, apiGroup, docLookup, paths);
-  }
 
   // Process typed routes from TypeLiteral nodes
   processTypedRoutes(literalsWithPrefixes, docLookup, paths, apiGroup);
