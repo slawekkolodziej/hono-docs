@@ -100,7 +100,7 @@ describe("serveOpenAPI middleware", () => {
     
     mockedFs.existsSync
       .mockReturnValueOnce(false) // ./openapi.json doesn't exist
-      .mockReturnValueOnce(true)  // hono-docs.config.ts exists
+      .mockReturnValueOnce(true)  // hono-docs.config.js exists (first priority)
       .mockReturnValueOnce(true); // config-specified openapi.json exists
     mockedFs.readFileSync.mockReturnValue(JSON.stringify(openApiContent));
     
@@ -109,7 +109,7 @@ describe("serveOpenAPI middleware", () => {
     const response = await app.request('/openapi.json');
     
     expect(response.status).toBe(200);
-    expect(mockedLoadConfig).toHaveBeenCalledWith('/test/project/hono-docs.config.ts');
+    expect(mockedLoadConfig).toHaveBeenCalledWith('/test/project/hono-docs.config.js');
   });
 
   test("auto-detects and uses hono-docs.config.js", async () => {
@@ -150,7 +150,9 @@ describe("serveOpenAPI middleware", () => {
   test("uses custom config path when provided", async () => {
     const openApiContent = { openapi: "3.0.0", info: { title: "Test", version: "1.0.0" } };
     
-    mockedFs.existsSync.mockReturnValue(true);
+    mockedFs.existsSync
+      .mockReturnValueOnce(false) // ./openapi.json doesn't exist
+      .mockReturnValueOnce(true); // custom config file exists
     mockedFs.readFileSync.mockReturnValue(JSON.stringify(openApiContent));
     
     const app = new Hono().get('/openapi.json', serveOpenAPI({ config: './custom-config.ts' }));
@@ -178,8 +180,9 @@ describe("serveOpenAPI middleware", () => {
     const openApiContent = { openapi: "3.0.0", info: { title: "Generated", version: "1.0.0" } };
     
     mockedFs.existsSync
-      .mockReturnValueOnce(true)  // config file exists
-      .mockReturnValueOnce(false) // openapi.json doesn't exist initially
+      .mockReturnValueOnce(false) // ./openapi.json doesn't exist initially
+      .mockReturnValueOnce(true)  // hono-docs.config.js exists (first priority)
+      .mockReturnValueOnce(false) // config-specified openapi.json doesn't exist initially
       .mockReturnValueOnce(true); // openapi.json exists after generation
     mockedFs.readFileSync.mockReturnValue(JSON.stringify(openApiContent));
     
@@ -190,7 +193,7 @@ describe("serveOpenAPI middleware", () => {
     const response = await app.request('/openapi.json');
     
     expect(response.status).toBe(200);
-    expect(mockedRunGenerate).toHaveBeenCalledWith('/test/project/hono-docs.config.ts');
+    expect(mockedRunGenerate).toHaveBeenCalledWith('/test/project/hono-docs.config.js');
     expect(consoleSpy).toHaveBeenCalledWith("🔄 OpenAPI spec not found, generating...");
     
     const responseBody = await response.json();
@@ -217,8 +220,9 @@ describe("serveOpenAPI middleware", () => {
 
   test("returns error when generation fails", async () => {
     mockedFs.existsSync
-      .mockReturnValueOnce(true)  // config file exists
-      .mockReturnValueOnce(false) // openapi.json doesn't exist initially
+      .mockReturnValueOnce(false) // ./openapi.json doesn't exist
+      .mockReturnValueOnce(true)  // hono-docs.config.js exists
+      .mockReturnValueOnce(false) // config-specified openapi.json doesn't exist initially
       .mockReturnValueOnce(false); // openapi.json still doesn't exist after "generation"
     
     const app = new Hono().get('/openapi.json', serveOpenAPI());
@@ -231,7 +235,9 @@ describe("serveOpenAPI middleware", () => {
   });
 
   test("handles loadConfig errors gracefully", async () => {
-    mockedFs.existsSync.mockReturnValue(true);
+    mockedFs.existsSync
+      .mockReturnValueOnce(false) // ./openapi.json doesn't exist
+      .mockReturnValueOnce(true); // config file exists
     mockedLoadConfig.mockRejectedValue(new Error("Invalid config"));
     
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -249,8 +255,9 @@ describe("serveOpenAPI middleware", () => {
 
   test("handles runGenerate errors gracefully", async () => {
     mockedFs.existsSync
+      .mockReturnValueOnce(false) // ./openapi.json doesn't exist
       .mockReturnValueOnce(true)  // config file exists
-      .mockReturnValueOnce(false); // openapi.json doesn't exist
+      .mockReturnValueOnce(false); // config-specified openapi.json doesn't exist
     
     mockedRunGenerate.mockRejectedValue(new Error("Generation failed"));
     
@@ -383,7 +390,10 @@ describe("serveOpenAPI middleware", () => {
     });
     
     const openApiContent = { openapi: "3.0.0", info: { title: "Custom Path", version: "1.0.0" } };
-    mockedFs.existsSync.mockReturnValue(true);
+    mockedFs.existsSync
+      .mockReturnValueOnce(false) // ./openapi.json doesn't exist (default path)
+      .mockReturnValueOnce(true)  // config file exists
+      .mockReturnValueOnce(true); // custom output path exists
     mockedFs.readFileSync.mockReturnValue(JSON.stringify(openApiContent));
     
     const app = new Hono().get('/openapi.json', serveOpenAPI());
