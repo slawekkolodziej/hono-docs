@@ -34,10 +34,14 @@
     "build": "tsup",
     "lint": "eslint . --ext .ts,.js",
     "test": "vitest run",
-    "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
-    "test:watch": "vitest tests/unit",
-    "test:watch:all": "vitest",
+    "test.unit": "vitest run tests/unit",
+    "test.integration": "vitest run tests/integration",
+    "test.watch": "vitest tests/unit",
+    "test.watch.all": "vitest",
+    "test.coverage": "vitest run --coverage",
+    "test.coverage.unit": "vitest run tests/unit --coverage",
+    "test.coverage.open": "pnpm run test.coverage && open coverage/index.html",
+    "test.coverage.ui": "vitest --coverage --ui",
     "prepare": "husky install"
   },
   "publishConfig": {

@@ -1,12 +1,11 @@
 import { describe, test, expect, beforeAll } from "vitest";
-import { execSync } from "child_process";
 import fs from "fs";
 import path from "path";
+import { runGenerate } from "../../src/core/runGenerate";
 
 // Test files are located in integration-tests directory
 const rootDir = path.resolve(import.meta.dirname, "../..");
 const integrationTestsDir = path.join(rootDir, "integration-tests");
-const cliPath = path.join(rootDir, "dist/cli/index.js");
 
 describe.each([
   {
@@ -63,13 +62,18 @@ describe.each([
   const outputPath = path.resolve(testCaseDir, "openapi.json");
   let output: any = null;
 
-  beforeAll(() => {
-    execSync(`node ${cliPath} generate --config ${configPathFull}`, {
-      stdio: "inherit",
-      cwd: testCaseDir,
-    });
-
-    output = JSON.parse(fs.readFileSync(outputPath, "utf-8"));
+  beforeAll(async () => {
+    // Change to the test case directory to match CLI behavior
+    const originalCwd = process.cwd();
+    process.chdir(testCaseDir);
+    
+    try {
+      await runGenerate(configPathFull);
+      output = JSON.parse(fs.readFileSync(outputPath, "utf-8"));
+    } finally {
+      // Always restore original working directory
+      process.chdir(originalCwd);
+    }
   });
 
   test("generate OpenAPI spec", () => {
