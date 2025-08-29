@@ -1,8 +1,9 @@
 dist
 output
 node_modules
-
 .txt
 temp
 
 *.tgz
+
+coverage
