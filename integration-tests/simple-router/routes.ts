@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { Scalar } from "@scalar/hono-api-reference";
+import { serveOpenAPI } from "@rcmade/hono-docs";
 
 const app = new Hono()
   // Simple GET route
@@ -31,6 +32,9 @@ const app = new Hono()
     const id = c.req.param("id");
     return c.json({ deleted: id });
   })
+
+  // Serve OpenAPI JSON spec automatically
+  .get("/openapi.json", serveOpenAPI())
 
   // Scalar API documentation
   .get(

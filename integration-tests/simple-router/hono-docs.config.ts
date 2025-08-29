@@ -15,5 +15,5 @@ export default defineConfig({
   },
   name: "Simple Router",
   appTypePath: "./routes.ts",
-  excludePaths: ["/docs"],
+  excludePaths: ["/docs", "/openapi.json"],
 });
