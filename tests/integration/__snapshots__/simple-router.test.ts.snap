@@ -31,7 +31,7 @@ exports[`manual-routes - Manual API definitions with overrides > matches snapsho
             "description": "Default fallback response",
           },
         },
-        "summary": "Auto-generated GET /",
+        "summary": "Auto-generated GET /user",
         "tags": [
           "UserList",
         ],
@@ -69,7 +69,7 @@ exports[`manual-routes - Manual API definitions with overrides > matches snapsho
             "description": "Default fallback response",
           },
         },
-        "summary": "Auto-generated GET /{id}",
+        "summary": "Auto-generated GET /user/{id}",
         "tags": [
           "User Routes",
         ],
@@ -105,6 +105,15 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
             "content": {
               "application/json": {
                 "schema": {
+                  "properties": {
+                    "users": {
+                      "items": {},
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "users",
+                  ],
                   "type": "object",
                 },
               },
@@ -112,25 +121,31 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
             "description": "Default fallback response",
           },
         },
-        "summary": "Auto-generated GET /users",
+        "summary": "Auto-generated GET /api/users",
         "tags": [
           "Simple Router",
         ],
       },
       "post": {
         "responses": {
-          "default": {
+          "201": {
             "content": {
               "application/json": {
                 "schema": {
+                  "properties": {
+                    "created": {},
+                  },
+                  "required": [
+                    "created",
+                  ],
                   "type": "object",
                 },
               },
             },
-            "description": "Default fallback response",
+            "description": "Status 201",
           },
         },
-        "summary": "Auto-generated POST /users",
+        "summary": "Auto-generated POST /api/users",
         "tags": [
           "Simple Router",
         ],
@@ -138,11 +153,29 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
     },
     "/api/users/{id}": {
       "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
+                  "properties": {
+                    "deleted": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "deleted",
+                  ],
                   "type": "object",
                 },
               },
@@ -150,17 +183,43 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
             "description": "Default fallback response",
           },
         },
-        "summary": "Auto-generated DELETE /users/{id}",
+        "summary": "Auto-generated DELETE /api/users/{id}",
         "tags": [
           "Simple Router",
         ],
       },
       "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
+                  "properties": {
+                    "user": {
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "id",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "user",
+                  ],
                   "type": "object",
                 },
               },
@@ -168,17 +227,33 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
             "description": "Default fallback response",
           },
         },
-        "summary": "Auto-generated GET /users/{id}",
+        "summary": "Auto-generated GET /api/users/{id}",
         "tags": [
           "Simple Router",
         ],
       },
       "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
         "responses": {
           "default": {
             "content": {
               "application/json": {
                 "schema": {
+                  "properties": {
+                    "updated": {},
+                  },
+                  "required": [
+                    "updated",
+                  ],
                   "type": "object",
                 },
               },
@@ -186,7 +261,7 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
             "description": "Default fallback response",
           },
         },
-        "summary": "Auto-generated PUT /users/{id}",
+        "summary": "Auto-generated PUT /api/users/{id}",
         "tags": [
           "Simple Router",
         ],

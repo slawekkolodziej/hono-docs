@@ -18,7 +18,7 @@
   "paths": {
     "/user": {
       "get": {
-        "summary": "Auto-generated GET /",
+        "summary": "Auto-generated GET /user",
         "tags": [
           "UserList"
         ],
@@ -46,7 +46,7 @@
     },
     "/user/{id}": {
       "get": {
-        "summary": "Auto-generated GET /{id}",
+        "summary": "Auto-generated GET /user/{id}",
         "tags": [
           "User Routes"
         ],

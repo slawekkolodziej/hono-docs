@@ -13,96 +13,171 @@
   "paths": {
     "/api/users": {
       "get": {
-        "summary": "Auto-generated GET /users",
+        "summary": "Auto-generated GET /api/users",
+        "tags": [
+          "Simple Router"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": {}
+                    }
+                  },
+                  "required": [
+                    "users"
+                  ]
                 }
               }
             }
           }
-        },
-        "tags": [
-          "Simple Router"
-        ]
+        }
       },
       "post": {
-        "summary": "Auto-generated POST /users",
+        "summary": "Auto-generated POST /api/users",
+        "tags": [
+          "Simple Router"
+        ],
         "responses": {
-          "default": {
-            "description": "Default fallback response",
+          "201": {
+            "description": "Status 201",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "created": {}
+                  },
+                  "required": [
+                    "created"
+                  ]
                 }
               }
             }
           }
-        },
-        "tags": [
-          "Simple Router"
-        ]
+        }
       }
     },
     "/api/users/{id}": {
       "get": {
-        "summary": "Auto-generated GET /users/{id}",
+        "summary": "Auto-generated GET /api/users/{id}",
+        "tags": [
+          "Simple Router"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "user"
+                  ]
                 }
               }
             }
           }
-        },
-        "tags": [
-          "Simple Router"
-        ]
+        }
       },
       "put": {
-        "summary": "Auto-generated PUT /users/{id}",
+        "summary": "Auto-generated PUT /api/users/{id}",
+        "tags": [
+          "Simple Router"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "updated": {}
+                  },
+                  "required": [
+                    "updated"
+                  ]
                 }
               }
             }
           }
-        },
-        "tags": [
-          "Simple Router"
-        ]
+        }
       },
       "delete": {
-        "summary": "Auto-generated DELETE /users/{id}",
+        "summary": "Auto-generated DELETE /api/users/{id}",
+        "tags": [
+          "Simple Router"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "deleted"
+                  ]
                 }
               }
             }
           }
-        },
-        "tags": [
-          "Simple Router"
-        ]
+        }
       }
     }
   }
