@@ -6,10 +6,21 @@ import { loadConfig } from "../config/loadConfig";
 import { generateTypes } from "./generateTypes";
 import { generateOpenApi } from "./generateOpenApi";
 import { Api } from "../types";
-import { cleanDefaultResponse, sanitizeApiPrefix } from "../utils/format";
+import { cleanDefaultResponse } from "../utils/format";
 import { getLibDir } from "../utils/libDir";
 
 const debug = createDebug("hono-docs");
+
+/**
+ * Generate a safe filename from API group name
+ */
+function sanitizeFileName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 export async function runGenerate(configPath: string) {
   const config = await loadConfig(configPath);
@@ -42,7 +53,7 @@ export async function runGenerate(configPath: string) {
     rootPath,
   };
   for (const apiGroup of apis) {
-    const sanitizedName = sanitizeApiPrefix(apiGroup.apiPrefix);
+    const sanitizedName = sanitizeFileName(apiGroup.name);
 
     const snapshotPath = await generateTypes({
       ...commonParams,
@@ -70,7 +81,7 @@ export async function runGenerate(configPath: string) {
   };
 
   for (const apiGroup of apis) {
-    const name = sanitizeApiPrefix(apiGroup.apiPrefix);
+    const name = sanitizeFileName(apiGroup.name);
     const openApiFile = path.join(openAPiOutputRoot, `${name}.json`);
 
     if (!fs.existsSync(openApiFile)) {
@@ -85,10 +96,7 @@ export async function runGenerate(configPath: string) {
 
     if (apiGroup?.api) {
       for (const customApi of apiGroup.api) {
-        const fullPath =
-          path.posix
-            .join(apiGroup.apiPrefix, customApi.api)
-            .replace(/\/+$/, "") || "/";
+        const fullPath = customApi.api.replace(/\/+$/, "") || "/";
         customApiMap.set(
           `${customApi.method.toLowerCase()} ${fullPath}`,
           customApi
@@ -98,21 +106,14 @@ export async function runGenerate(configPath: string) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     for (const [pathKey, operations] of Object.entries<any>(json.paths)) {
-      // Check if pathKey already has the prefix to avoid double-prefixing
-      let prefixedPath: string;
-      if (pathKey.startsWith(apiGroup.apiPrefix)) {
-        // Path already has prefix (e.g., from simple router fallback)
-        prefixedPath = pathKey;
-      } else {
-        // Add prefix to path
-        prefixedPath = path.posix.join(apiGroup.apiPrefix, pathKey).replace(/\/+$/, "") || "/";
-      }
+      // Paths now come directly from Hono routes (no additional prefixing)
+      const apiPath = pathKey;
       
-      if (!merged.paths[prefixedPath]) merged.paths[prefixedPath] = {};
+      if (!merged.paths[apiPath]) merged.paths[apiPath] = {};
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       for (const [method, operation] of Object.entries<any>(operations)) {
-        const opKey = `${method.toLowerCase()} ${prefixedPath}`;
+        const opKey = `${method.toLowerCase()} ${apiPath}`;
         const customApi = customApiMap.get(opKey);
 
         // Override or enrich metadata if defined
@@ -131,8 +132,8 @@ export async function runGenerate(configPath: string) {
           }
         }
 
-        cleanDefaultResponse(operation, prefixedPath, method);
-        merged.paths[prefixedPath][method] = operation;
+        cleanDefaultResponse(operation, apiPath, method);
+        merged.paths[apiPath][method] = operation;
       }
     }
   }
