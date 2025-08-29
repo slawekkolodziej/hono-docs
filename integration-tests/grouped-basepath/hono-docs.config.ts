@@ -15,7 +15,6 @@ export default defineConfig({
   apis: [
     {
       name: "BasePath Grouped App",
-      apiPrefix: "",
       appTypePath: "./routes.ts",
     },
   ],

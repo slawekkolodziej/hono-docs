@@ -16,7 +16,6 @@ export default defineConfig({
   apis: [
     {
       name: "Middleware Docs Test",
-      apiPrefix: "/api/v1",
       appTypePath: "./routes.ts",
     },
   ],

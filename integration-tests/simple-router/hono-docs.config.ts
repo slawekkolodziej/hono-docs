@@ -16,8 +16,8 @@ export default defineConfig({
   apis: [
     {
       name: "Simple Router",
-      apiPrefix: "/api",
       appTypePath: "./routes.ts",
+      excludePaths: ["/docs"],
     },
   ],
 });

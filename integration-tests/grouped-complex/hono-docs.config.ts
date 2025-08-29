@@ -15,7 +15,6 @@ export default defineConfig({
   apis: [
     {
       name: "Complex Grouped App",
-      apiPrefix: "",
       appTypePath: "./routes.ts",
     },
   ],

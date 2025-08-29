@@ -15,7 +15,6 @@ export default defineConfig({
   apis: [
     {
       name: "Simple Grouped App",
-      apiPrefix: "",
       appTypePath: "./src/routes.ts",
       // Intentionally leaving api array empty to test auto-discovery
     },
