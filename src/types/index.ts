@@ -43,14 +43,9 @@ export type Api = {
 };
 
 /**
- * Represents a group of related API routes, each with a shared prefix and appType.
+ * Represents a group of related API routes, each with a shared appType.
  */
 export type ApiGroup = {
-  /**
-   * URL prefix applied to all `api` paths within this group (e.g., `/auth`).
-   */
-  apiPrefix: string;
-
   /**
    * File path to the module exporting `AppType = typeof routeInstance`.
    */
@@ -65,6 +60,12 @@ export type ApiGroup = {
    * Optional list of specific routes to include; if omitted, all from AppType are used.
    */
   api?: Api[];
+
+  /**
+   * Optional list of paths to exclude from OpenAPI generation (e.g., documentation routes, health checks).
+   * Supports string literals and regular expressions.
+   */
+  excludePaths?: (string | RegExp)[];
 };
 
 /**
