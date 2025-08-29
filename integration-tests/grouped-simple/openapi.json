@@ -13,6 +13,9 @@
     "/docs": {
       "get": {
         "summary": "Auto-generated GET /docs",
+        "tags": [
+          "Simple Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -32,15 +35,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Simple Grouped App"
-        ]
+        }
       }
     },
     "/docs/{id}": {
       "get": {
         "summary": "Auto-generated GET /docs/{id}",
+        "tags": [
+          "Simple Grouped App"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -70,15 +73,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Simple Grouped App"
-        ]
+        }
       }
     },
     "/users": {
       "get": {
         "summary": "Auto-generated GET /users",
+        "tags": [
+          "Simple Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -99,13 +102,13 @@
               }
             }
           }
-        },
-        "tags": [
-          "Simple Grouped App"
-        ]
+        }
       },
       "post": {
         "summary": "Auto-generated POST /users",
+        "tags": [
+          "Simple Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -128,15 +131,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Simple Grouped App"
-        ]
+        }
       }
     },
     "/users/{id}": {
       "get": {
         "summary": "Auto-generated GET /users/{id}",
+        "tags": [
+          "Simple Grouped App"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -166,10 +169,7 @@
               }
             }
           }
-        },
-        "tags": [
-          "Simple Grouped App"
-        ]
+        }
       }
     }
   }

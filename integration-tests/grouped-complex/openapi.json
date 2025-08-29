@@ -13,6 +13,9 @@
     "/health": {
       "get": {
         "summary": "Auto-generated GET /health",
+        "tags": [
+          "Complex Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -32,15 +35,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Complex Grouped App"
-        ]
+        }
       }
     },
     "/api/v1/docs": {
       "get": {
         "summary": "Auto-generated GET /api/v1/docs",
+        "tags": [
+          "Complex Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -60,15 +63,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Complex Grouped App"
-        ]
+        }
       }
     },
     "/api/v1/docs/{id}": {
       "get": {
         "summary": "Auto-generated GET /api/v1/docs/{id}",
+        "tags": [
+          "Complex Grouped App"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -98,15 +101,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Complex Grouped App"
-        ]
+        }
       }
     },
     "/api/v1/users": {
       "get": {
         "summary": "Auto-generated GET /api/v1/users",
+        "tags": [
+          "Complex Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -127,13 +130,13 @@
               }
             }
           }
-        },
-        "tags": [
-          "Complex Grouped App"
-        ]
+        }
       },
       "post": {
         "summary": "Auto-generated POST /api/v1/users",
+        "tags": [
+          "Complex Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -156,15 +159,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Complex Grouped App"
-        ]
+        }
       }
     },
     "/api/v1/users/{id}": {
       "get": {
         "summary": "Auto-generated GET /api/v1/users/{id}",
+        "tags": [
+          "Complex Grouped App"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -194,15 +197,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Complex Grouped App"
-        ]
+        }
       }
     },
     "/auth/login": {
       "post": {
         "summary": "Auto-generated POST /auth/login",
+        "tags": [
+          "Complex Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -222,15 +225,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Complex Grouped App"
-        ]
+        }
       }
     },
     "/auth/logout": {
       "post": {
         "summary": "Auto-generated POST /auth/logout",
+        "tags": [
+          "Complex Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -253,10 +256,7 @@
               }
             }
           }
-        },
-        "tags": [
-          "Complex Grouped App"
-        ]
+        }
       }
     }
   }

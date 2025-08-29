@@ -13,6 +13,9 @@
     "/api/docs": {
       "get": {
         "summary": "Auto-generated GET /api/docs",
+        "tags": [
+          "Nested Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -32,15 +35,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Nested Grouped App"
-        ]
+        }
       }
     },
     "/api/docs/{id}": {
       "get": {
         "summary": "Auto-generated GET /api/docs/{id}",
+        "tags": [
+          "Nested Grouped App"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -70,15 +73,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Nested Grouped App"
-        ]
+        }
       }
     },
     "/api/users": {
       "get": {
         "summary": "Auto-generated GET /api/users",
+        "tags": [
+          "Nested Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -99,13 +102,13 @@
               }
             }
           }
-        },
-        "tags": [
-          "Nested Grouped App"
-        ]
+        }
       },
       "post": {
         "summary": "Auto-generated POST /api/users",
+        "tags": [
+          "Nested Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -128,15 +131,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "Nested Grouped App"
-        ]
+        }
       }
     },
     "/api/users/{id}": {
       "get": {
         "summary": "Auto-generated GET /api/users/{id}",
+        "tags": [
+          "Nested Grouped App"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -166,10 +169,7 @@
               }
             }
           }
-        },
-        "tags": [
-          "Nested Grouped App"
-        ]
+        }
       }
     }
   }

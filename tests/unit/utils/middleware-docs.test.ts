@@ -4,7 +4,7 @@ import { Project } from "ts-morph";
 import {
   extractDocumentationFromMiddleware,
   createDocLookup,
-} from "../src/utils/middleware-docs";
+} from "../../../src/utils/middleware-docs";
 
 describe("doc() middleware extraction", () => {
   let project: Project;

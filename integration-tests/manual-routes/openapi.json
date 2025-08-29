@@ -19,6 +19,9 @@
     "/user": {
       "get": {
         "summary": "Auto-generated GET /",
+        "tags": [
+          "UserList"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -38,15 +41,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "UserList"
-        ]
+        }
       }
     },
     "/user/{id}": {
       "get": {
         "summary": "Auto-generated GET /{id}",
+        "tags": [
+          "User Routes"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -76,10 +79,7 @@
               }
             }
           }
-        },
-        "tags": [
-          "User Routes"
-        ]
+        }
       }
     }
   }

@@ -121,7 +121,8 @@ function processSimpleRoutes(
 function processTypedRoutes(
   literalsWithPrefixes: Array<{ literal: TypeLiteralNode; prefix: string }>,
   docLookup: Map<string, import("../utils/middleware-docs").DocConfig>,
-  paths: OpenAPI
+  paths: OpenAPI,
+  apiGroup: ApiGroup
 ): void {
   for (const { literal: lit, prefix } of literalsWithPrefixes) {
     debug("Processing literal with prefix: %s", prefix);
@@ -166,7 +167,7 @@ function processTypedRoutes(
           op,
           docConfig,
           `Auto-generated ${http.toUpperCase()} ${route}`,
-          "API" // Will be overridden by docConfig.tags if present
+          apiGroup.name
         );
 
         // parameters
@@ -542,7 +543,7 @@ export async function generateOpenApi({
   }
 
   // Process typed routes from TypeLiteral nodes
-  processTypedRoutes(literalsWithPrefixes, docLookup, paths);
+  processTypedRoutes(literalsWithPrefixes, docLookup, paths, apiGroup);
 
   const spec = {
     ...config.openApi,

@@ -1,7 +1,7 @@
 // Integration tests for doc() middleware with full OpenAPI generation
 import { describe, test, expect, beforeEach } from "vitest";
 import { Project } from "ts-morph";
-import { extractDocumentationFromMiddleware, createDocLookup } from "../src/utils/middleware-docs";
+import { extractDocumentationFromMiddleware, createDocLookup } from "../../src/utils/middleware-docs";
 
 describe("doc() middleware integration tests", () => {
   let project: Project;

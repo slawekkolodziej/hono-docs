@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 
 // Test files are located in integration-tests directory
-const rootDir = path.resolve(import.meta.dirname, "..");
+const rootDir = path.resolve(import.meta.dirname, "../..");
 const integrationTestsDir = path.join(rootDir, "integration-tests");
 const cliPath = path.join(rootDir, "dist/cli/index.js");
 

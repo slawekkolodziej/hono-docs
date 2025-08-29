@@ -13,6 +13,9 @@
     "/v1/docs": {
       "get": {
         "summary": "Auto-generated GET /v1/docs",
+        "tags": [
+          "BasePath Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -32,15 +35,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "BasePath Grouped App"
-        ]
+        }
       }
     },
     "/v1/docs/{id}": {
       "get": {
         "summary": "Auto-generated GET /v1/docs/{id}",
+        "tags": [
+          "BasePath Grouped App"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -70,15 +73,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "BasePath Grouped App"
-        ]
+        }
       }
     },
     "/v1/users": {
       "get": {
         "summary": "Auto-generated GET /v1/users",
+        "tags": [
+          "BasePath Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -99,13 +102,13 @@
               }
             }
           }
-        },
-        "tags": [
-          "BasePath Grouped App"
-        ]
+        }
       },
       "post": {
         "summary": "Auto-generated POST /v1/users",
+        "tags": [
+          "BasePath Grouped App"
+        ],
         "responses": {
           "default": {
             "description": "Default fallback response",
@@ -128,15 +131,15 @@
               }
             }
           }
-        },
-        "tags": [
-          "BasePath Grouped App"
-        ]
+        }
       }
     },
     "/v1/users/{id}": {
       "get": {
         "summary": "Auto-generated GET /v1/users/{id}",
+        "tags": [
+          "BasePath Grouped App"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -166,10 +169,7 @@
               }
             }
           }
-        },
-        "tags": [
-          "BasePath Grouped App"
-        ]
+        }
       }
     }
   }
