@@ -12,7 +12,7 @@ exports[`manual-routes - Manual API definitions with overrides > matches snapsho
     "/user": {
       "get": {
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
@@ -28,7 +28,7 @@ exports[`manual-routes - Manual API definitions with overrides > matches snapsho
                 },
               },
             },
-            "description": "Default fallback response",
+            "description": "Success response",
           },
         },
         "summary": "Auto-generated GET /user",
@@ -50,7 +50,7 @@ exports[`manual-routes - Manual API definitions with overrides > matches snapsho
           },
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
@@ -66,7 +66,7 @@ exports[`manual-routes - Manual API definitions with overrides > matches snapsho
                 },
               },
             },
-            "description": "Default fallback response",
+            "description": "Success response",
           },
         },
         "summary": "Auto-generated GET /user/{id}",
@@ -98,16 +98,96 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
   },
   "openapi": "3.0.0",
   "paths": {
+    "/api/profile": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "profile": {
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                        },
+                        "id": {
+                          "type": "string",
+                        },
+                        "name": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "profile",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "error",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 401",
+          },
+        },
+        "summary": "Auto-generated GET /api/profile",
+        "tags": [
+          "Simple Router",
+        ],
+      },
+    },
     "/api/users": {
       "get": {
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "properties": {
                     "users": {
-                      "items": {},
+                      "items": {
+                        "properties": {
+                          "email": {
+                            "type": "string",
+                          },
+                          "id": {
+                            "type": "string",
+                          },
+                          "name": {
+                            "type": "string",
+                          },
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "email",
+                        ],
+                        "type": "object",
+                      },
                       "type": "array",
                     },
                   },
@@ -118,7 +198,7 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
                 },
               },
             },
-            "description": "Default fallback response",
+            "description": "Success response",
           },
         },
         "summary": "Auto-generated GET /api/users",
@@ -127,13 +207,53 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
         ],
       },
       "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "type": "string",
+                  },
+                  "name": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "name",
+                  "email",
+                ],
+                "type": "object",
+              },
+            },
+          },
+          "required": true,
+        },
         "responses": {
           "201": {
             "content": {
               "application/json": {
                 "schema": {
                   "properties": {
-                    "created": {},
+                    "created": {
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                        },
+                        "id": {
+                          "type": "string",
+                        },
+                        "name": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "name",
+                        "email",
+                        "id",
+                      ],
+                      "type": "object",
+                    },
                   },
                   "required": [
                     "created",
@@ -144,8 +264,229 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
             },
             "description": "Status 201",
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 400",
+          },
         },
         "summary": "Auto-generated POST /api/users",
+        "tags": [
+          "Simple Router",
+        ],
+      },
+    },
+    "/api/users/valibot": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "type": "string",
+                  },
+                  "name": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "name",
+                  "email",
+                ],
+                "type": "object",
+              },
+            },
+          },
+          "required": true,
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "created": {
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                        },
+                        "id": {
+                          "type": "string",
+                        },
+                        "name": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "name",
+                        "email",
+                        "id",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "created",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 201",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "issues": {
+                          "items": {
+                            "additionalProperties": true,
+                            "properties": {
+                              "input": {},
+                              "message": {
+                                "type": "string",
+                              },
+                              "path": {
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string",
+                                    },
+                                    {
+                                      "type": "number",
+                                    },
+                                  ],
+                                },
+                                "type": "array",
+                              },
+                              "type": {
+                                "type": "string",
+                              },
+                            },
+                            "type": "object",
+                          },
+                          "type": "array",
+                        },
+                        "output": {
+                          "properties": {
+                            "email": {
+                              "type": "string",
+                            },
+                            "name": {
+                              "type": "string",
+                            },
+                          },
+                          "required": [
+                            "name",
+                            "email",
+                          ],
+                          "type": "object",
+                        },
+                        "success": {
+                          "const": false,
+                          "type": "boolean",
+                        },
+                        "typed": {
+                          "type": "boolean",
+                        },
+                      },
+                      "required": [
+                        "success",
+                        "typed",
+                        "issues",
+                        "output",
+                      ],
+                      "type": "object",
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "issues": {
+                          "items": {
+                            "additionalProperties": true,
+                            "properties": {
+                              "input": {},
+                              "message": {
+                                "type": "string",
+                              },
+                              "path": {
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string",
+                                    },
+                                    {
+                                      "type": "number",
+                                    },
+                                  ],
+                                },
+                                "type": "array",
+                              },
+                              "type": {
+                                "type": "string",
+                              },
+                            },
+                            "type": "object",
+                          },
+                          "type": "array",
+                        },
+                        "output": {
+                          "additionalProperties": true,
+                          "type": "object",
+                        },
+                        "success": {
+                          "const": false,
+                          "type": "boolean",
+                        },
+                        "typed": {
+                          "type": "boolean",
+                        },
+                      },
+                      "required": [
+                        "success",
+                        "typed",
+                        "issues",
+                        "output",
+                      ],
+                      "type": "object",
+                    },
+                  ],
+                },
+              },
+            },
+            "description": "Status 400",
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "error",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 401",
+          },
+        },
+        "summary": "Auto-generated POST /api/users/valibot",
         "tags": [
           "Simple Router",
         ],
@@ -164,7 +505,7 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
           },
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
@@ -180,7 +521,25 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
                 },
               },
             },
-            "description": "Default fallback response",
+            "description": "Success response",
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "error",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 404",
           },
         },
         "summary": "Auto-generated DELETE /api/users/{id}",
@@ -200,21 +559,44 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
           },
         ],
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "properties": {
                     "user": {
-                      "properties": {
-                        "id": {
-                          "type": "string",
+                      "oneOf": [
+                        {
+                          "properties": {
+                            "email": {
+                              "type": "string",
+                            },
+                            "id": {
+                              "type": "string",
+                            },
+                            "name": {
+                              "type": "string",
+                            },
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "email",
+                          ],
+                          "type": "object",
                         },
-                      },
-                      "required": [
-                        "id",
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                            },
+                          },
+                          "required": [
+                            "id",
+                          ],
+                          "type": "object",
+                        },
                       ],
-                      "type": "object",
                     },
                   },
                   "required": [
@@ -224,7 +606,25 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
                 },
               },
             },
-            "description": "Default fallback response",
+            "description": "Success response",
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "error",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 404",
           },
         },
         "summary": "Auto-generated GET /api/users/{id}",
@@ -243,13 +643,63 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
             },
           },
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                      },
+                    ],
+                  },
+                  "name": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                      },
+                    ],
+                  },
+                },
+                "type": "object",
+              },
+            },
+          },
+          "required": true,
+        },
         "responses": {
-          "default": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "properties": {
-                    "updated": {},
+                    "updated": {
+                      "properties": {
+                        "email": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                            },
+                          ],
+                        },
+                        "id": {
+                          "type": "string",
+                        },
+                        "name": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                            },
+                          ],
+                        },
+                      },
+                      "required": [
+                        "id",
+                      ],
+                      "type": "object",
+                    },
                   },
                   "required": [
                     "updated",
@@ -258,7 +708,36 @@ exports[`simple-router - Non-grouped basic Hono app > matches complete simple ro
                 },
               },
             },
-            "description": "Default fallback response",
+            "description": "Success response",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 400",
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "error",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 404",
           },
         },
         "summary": "Auto-generated PUT /api/users/{id}",
