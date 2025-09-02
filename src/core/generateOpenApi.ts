@@ -227,9 +227,16 @@ function loadDocumentationFromMiddleware(
   debug("Extracting documentation from middleware in source file: %s", apiGroup.appTypePath);
   
   try {
-    const originalSf = project.addSourceFileAtPath(
-      path.resolve(rootPath, apiGroup.appTypePath)
-    );
+    const originalPath = path.resolve(rootPath, apiGroup.appTypePath);
+    
+    // Remove any existing source file from the project to avoid cached AST data
+    const existingOriginalFile = project.getSourceFile(originalPath);
+    if (existingOriginalFile) {
+      project.removeSourceFile(existingOriginalFile);
+      debug("Removed cached original source file from ts-morph project: %s", originalPath);
+    }
+    
+    const originalSf = project.addSourceFileAtPath(originalPath);
     const documentation = extractDocumentationFromMiddleware(originalSf);
     const docLookup = createDocLookup(documentation);
     debug("Found %d routes with doc() middleware", documentation.length);
@@ -265,137 +272,98 @@ function parseAppTypeRoutes(
   }
 
   const routesNode = typeArgs[1];
-
-  // Gather all TypeLiteralNodes with their prefixes (handle intersections)
-  const literalsWithPrefixes: Array<{ literal: TypeLiteralNode; prefix: string }> = [];
   
-  if (routesNode.isKind(SyntaxKind.IntersectionType)) {
-    for (const tn of routesNode
-      .asKind(SyntaxKind.IntersectionType)!
-      .getTypeNodes()) {
-      if (tn.isKind(SyntaxKind.TypeLiteral))
-        literalsWithPrefixes.push({ literal: tn as TypeLiteralNode, prefix: "" });
-    }
-  } else if (routesNode.isKind(SyntaxKind.UnionType)) {
-    // Handle unions (for grouped AppType)
-    debug("Processing UnionType with %d members", routesNode.asKind(SyntaxKind.UnionType)!.getTypeNodes().length);
+  debug("Routes node kind: %s", routesNode.getKindName());
+  debug("Routes node text sample: %s", routesNode.getText().substring(0, 200));
 
-    const unionLiterals = extractTypeLiteralsFromUnion(routesNode);
-    literalsWithPrefixes.push(...unionLiterals);
-    debug("Extracted %d TypeLiteral nodes from union", unionLiterals.length);
-  } else if (routesNode.isKind(SyntaxKind.TypeLiteral)) {
-    literalsWithPrefixes.push({ literal: routesNode as TypeLiteralNode, prefix: "" });
-  } else {
-    debug("Routes node kind: %s", routesNode.getKindName());
-    debug("Routes node text: %s", routesNode.getText());
-    throw new Error("Routes type is not a literal, intersection, or union of literals. Please use method chaining pattern: app.get(...).post(...) for proper TypeScript inference.");
-  }
+  // Extract all route nodes using the clean recursive approach
+  const literalsWithPrefixes = extractRouteNodes(routesNode);
+  debug("Extracted %d TypeLiteral nodes total", literalsWithPrefixes.length);
   
   return literalsWithPrefixes;
 }
 
 /**
- * CORE ALGORITHM: Extract TypeLiteral nodes with path prefixes from Hono's complex type structures
- * 
- * This is the heart of route extraction for grouped Hono apps. Hono's `.route()` method creates
- * complex nested type unions that represent grouped routes with path prefixes.
- * 
- * For example:
- * ```typescript
- * const app = new Hono()
- *   .route("/api", apiRoutes)    // Creates MergeSchemaPath<ApiSchema, "/api">
- *   .route("/auth", authRoutes)  // Creates MergeSchemaPath<AuthSchema, "/auth">
- * ```
- * 
- * This results in union types like:
- * MergeSchemaPath<ApiSchema, "/api"> | MergeSchemaPath<AuthSchema, "/auth">
- * 
- * We need to:
- * 1. Extract schemas from MergeSchemaPath and combine them with their path prefixes
- * 2. Handle nested unions/intersections recursively  
- * 3. Return all TypeLiteral nodes (route definitions) with their full path prefixes
+ * Clean recursive approach to extract route nodes from any TypeScript type structure.
+ * This replaces the complex, hardcoded logic with a simple tree walk.
  */
-function extractTypeLiteralsFromUnion(unionNode: TypeNode, currentPrefix: string = ""): Array<{ literal: TypeLiteralNode; prefix: string }> {
-  const literals: Array<{ literal: TypeLiteralNode; prefix: string }> = [];
+interface RouteNode {
+  literal: TypeLiteralNode;
+  prefix: string;
+}
 
-  if (!unionNode.isKind(SyntaxKind.UnionType)) {
-    return literals;
+/**
+ * Recursively extract all TypeLiteral nodes with their prefixes from a type node.
+ * Handles all TypeScript AST constructs: unions, intersections, parentheses, and MergeSchemaPath.
+ */
+function extractRouteNodes(node: TypeNode, currentPrefix: string = ""): RouteNode[] {
+  debug("Extracting from node: %s with prefix: '%s'", node.getKindName(), currentPrefix);
+
+  // Base case: TypeLiteral contains the actual route definitions
+  if (node.isKind(SyntaxKind.TypeLiteral)) {
+    debug("Found TypeLiteral with prefix: '%s'", currentPrefix);
+    return [{ literal: node as TypeLiteralNode, prefix: currentPrefix }];
   }
 
-  for (const member of unionNode.asKind(SyntaxKind.UnionType)!.getTypeNodes()) {
-    debug("Processing union member: %s with prefix: %s", member.getKindName(), currentPrefix);
-
-    if (member.isKind(SyntaxKind.TypeLiteral)) {
-      debug("Found direct TypeLiteral in union");
-      literals.push({ literal: member as TypeLiteralNode, prefix: currentPrefix });
-    } else if (member.isKind(SyntaxKind.ImportType)) {
-      // Handle ImportType with qualifier (like import("...").MergeSchemaPath)
-      const importType = member.asKind(SyntaxKind.ImportType)!;
-      const qualifier = importType.getQualifier();
-      debug("ImportType qualifier: %s", qualifier?.getKindName());
-
-      if (qualifier) {
-        let qualifierName = "";
-        if (qualifier.isKind(SyntaxKind.QualifiedName)) {
-          const qualifiedName = qualifier.asKind(SyntaxKind.QualifiedName)!;
-          qualifierName = qualifiedName.getRight().getText();
-        } else if (qualifier.isKind(SyntaxKind.Identifier)) {
-          qualifierName = qualifier.asKind(SyntaxKind.Identifier)!.getText();
-        }
-        debug("ImportType qualifier name: %s", qualifierName);
-
-        // Only process MergeSchemaPath
-        if (qualifierName === "MergeSchemaPath") {
-          const typeArgs = importType.getTypeArguments();
-          debug("MergeSchemaPath typeArgs: %d", typeArgs.length);
-          if (typeArgs.length >= 2) {
-            const schema = typeArgs[0];
-            const pathPrefix = typeArgs[1].getText().replace(/"/g, "");
-            const fullPrefix = currentPrefix + pathPrefix;
-            debug("Schema kind: %s with prefix: %s", schema.getKindName(), fullPrefix);
-
-            if (schema.isKind(SyntaxKind.IntersectionType)) {
-              debug("Processing IntersectionType with %d members", schema.asKind(SyntaxKind.IntersectionType)!.getTypeNodes().length);
-              for (const intersectMember of schema.asKind(SyntaxKind.IntersectionType)!.getTypeNodes()) {
-                debug("Intersection member kind: %s", intersectMember.getKindName());
-                if (intersectMember.isKind(SyntaxKind.TypeLiteral)) {
-                  debug("Found TypeLiteral in IntersectionType!");
-                  literals.push({ literal: intersectMember as TypeLiteralNode, prefix: fullPrefix });
-                } else {
-                  debug("Non-TypeLiteral in intersection: %s", intersectMember.getKindName());
-                }
-              }
-            } else if (schema.isKind(SyntaxKind.UnionType)) {
-              // Handle nested unions (recursive case)
-              const nestedLiterals = extractTypeLiteralsFromUnion(schema, fullPrefix);
-              literals.push(...nestedLiterals);
-            } else {
-              // Recursively extract from the schema
-              const nestedLiterals = extractTypeLiteralsFromUnion(schema, fullPrefix);
-              debug("Found %d nested literals", nestedLiterals.length);
-              literals.push(...nestedLiterals);
-            }
-          }
-        } else {
-          debug("Skipping non-MergeSchemaPath: %s", qualifierName);
-        }
-      }
-    } else if (member.isKind(SyntaxKind.IntersectionType)) {
-      debug("Processing IntersectionType in union");
-      // Handle intersections within unions
-      for (const intersectMember of member.asKind(SyntaxKind.IntersectionType)!.getTypeNodes()) {
-        debug("Intersection member: %s", intersectMember.getKindName());
-        if (intersectMember.isKind(SyntaxKind.TypeLiteral)) {
-          debug("Found TypeLiteral in intersection");
-          literals.push({ literal: intersectMember as TypeLiteralNode, prefix: currentPrefix });
-        }
-      }
-    } else {
-      debug("Ignoring union member type: %s", member.getKindName());
-    }
+  // Recursive cases: traverse the tree structure
+  if (node.isKind(SyntaxKind.UnionType)) {
+    debug("Processing UnionType with %d members", node.asKind(SyntaxKind.UnionType)!.getTypeNodes().length);
+    return node.asKind(SyntaxKind.UnionType)!.getTypeNodes()
+      .flatMap(child => extractRouteNodes(child, currentPrefix));
   }
 
-  return literals;
+  if (node.isKind(SyntaxKind.IntersectionType)) {
+    debug("Processing IntersectionType with %d members", node.asKind(SyntaxKind.IntersectionType)!.getTypeNodes().length);
+    return node.asKind(SyntaxKind.IntersectionType)!.getTypeNodes()
+      .flatMap(child => extractRouteNodes(child, currentPrefix));
+  }
+
+  if (node.isKind(SyntaxKind.ParenthesizedType)) {
+    debug("Processing ParenthesizedType");
+    const innerNode = node.asKind(SyntaxKind.ParenthesizedType)!.getTypeNode();
+    return extractRouteNodes(innerNode, currentPrefix);
+  }
+
+  // Special case: MergeSchemaPath adds a path prefix
+  if (node.isKind(SyntaxKind.ImportType)) {
+    return handleMergeSchemaPath(node.asKind(SyntaxKind.ImportType)!, currentPrefix);
+  }
+
+  debug("Ignoring node type: %s", node.getKindName());
+  return [];
+}
+
+/**
+ * Handle MergeSchemaPath<Schema, "/prefix"> by extracting the schema and adding the prefix.
+ */
+function handleMergeSchemaPath(importType: ImportTypeNode, currentPrefix: string): RouteNode[] {
+  const qualifier = importType.getQualifier();
+  if (!qualifier) return [];
+
+  let qualifierName = "";
+  if (qualifier.isKind(SyntaxKind.QualifiedName)) {
+    qualifierName = qualifier.asKind(SyntaxKind.QualifiedName)!.getRight().getText();
+  } else if (qualifier.isKind(SyntaxKind.Identifier)) {
+    qualifierName = qualifier.asKind(SyntaxKind.Identifier)!.getText();
+  }
+
+  if (qualifierName !== "MergeSchemaPath") {
+    debug("Ignoring ImportType with qualifier: %s", qualifierName);
+    return [];
+  }
+
+  const typeArgs = importType.getTypeArguments();
+  if (typeArgs.length < 2) {
+    debug("MergeSchemaPath has insufficient type args: %d", typeArgs.length);
+    return [];
+  }
+
+  const schema = typeArgs[0];
+  const pathPrefix = typeArgs[1].getText().replace(/"/g, "");
+  const fullPrefix = currentPrefix + pathPrefix;
+
+  debug("Processing MergeSchemaPath with prefix: '%s' -> '%s'", pathPrefix, fullPrefix);
+  return extractRouteNodes(schema, fullPrefix);
 }
 
 /**
@@ -430,9 +398,16 @@ export async function generateOpenApi({
   snapshotPath: AppTypeSnapshotPath;
   apiGroup: ApiGroup;
 }): Promise<OpenApiPath> {
-  const sf = project.addSourceFileAtPath(
-    path.resolve(rootPath, snapshotPath.appTypePath)
-  );
+  const targetPath = path.resolve(rootPath, snapshotPath.appTypePath);
+  
+  // Remove any existing source file from the project to avoid cached AST data
+  const existingFile = project.getSourceFile(targetPath);
+  if (existingFile) {
+    project.removeSourceFile(existingFile);
+    debug("Removed cached source file from ts-morph project: %s", targetPath);
+  }
+  
+  const sf = project.addSourceFileAtPath(targetPath);
   
   // Extract documentation from doc() middleware
   const docLookup = loadDocumentationFromMiddleware(project, rootPath, apiGroup);
@@ -452,6 +427,12 @@ export async function generateOpenApi({
 
   // write to disk
   const outputPath = path.join(outputRoot, `${fileName}.json`);
+
+  // Clean up any existing file first to avoid stale data
+  if (fs.existsSync(outputPath)) {
+    fs.unlinkSync(outputPath);
+    debug("Removed existing OpenAPI file: %s", outputPath);
+  }
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, JSON.stringify(spec, null, 2), "utf-8");
