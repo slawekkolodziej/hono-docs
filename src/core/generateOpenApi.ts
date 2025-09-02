@@ -88,8 +88,6 @@ function applyDocumentationToOperation(
   }
 }
 
-
-
 /**
  * Process typed routes from TypeLiteral nodes and add them to paths
  */
@@ -170,21 +168,46 @@ function processTypedRoutes(
             .getText();
           return /^\d+$/.test(s) ? s : "default";
         });
-        for (const [code, vs] of Object.entries(byStatus)) {
+        
+        // Convert 'default' to '200' when appropriate and sort responses numerically
+        const responseEntries = Object.entries(byStatus);
+        const hasExplicitSuccess = responseEntries.some(([code]) => code === "200");
+        
+        for (const [code, vs] of responseEntries) {
           const schemas = vs.map((v) =>
             buildSchema(
               v.getProperty("output")!.getValueDeclarationOrThrow().getType()
             )
           );
           const schema = schemas.length > 1 ? { oneOf: schemas } : schemas[0];
-          op.responses[code] = {
+          
+          // Convert 'default' to '200' if no explicit 200 exists
+          const responseCode = (code === "default" && !hasExplicitSuccess) ? "200" : code;
+          
+          op.responses[responseCode] = {
             description:
-              code === "default"
+              responseCode === "200" && code === "default"
+                ? `Success response`
+                : responseCode === "default"
                 ? `Default fallback response`
-                : `Status ${code}`,
+                : `Status ${responseCode}`,
             content: { "application/json": { schema } },
           };
         }
+
+        // Sort responses numerically (2xx, 3xx, 4xx, 5xx, then 'default' if any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sortedResponses: Record<string, any> = {};
+        const responseCodes = Object.keys(op.responses).sort((a, b) => {
+          if (a === "default") return 1;
+          if (b === "default") return -1;
+          return parseInt(a) - parseInt(b);
+        });
+        
+        for (const code of responseCodes) {
+          sortedResponses[code] = op.responses[code];
+        }
+        op.responses = sortedResponses;
 
         paths[route][http] = op;
       }
@@ -270,8 +293,6 @@ function parseAppTypeRoutes(
   
   return literalsWithPrefixes;
 }
-
-
 
 /**
  * CORE ALGORITHM: Extract TypeLiteral nodes with path prefixes from Hono's complex type structures
