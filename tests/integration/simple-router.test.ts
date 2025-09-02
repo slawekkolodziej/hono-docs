@@ -98,7 +98,7 @@ describe("simple-router - Non-grouped basic Hono app", () => {
     expect(output).toHaveProperty("paths");
     
     // Now generates complete paths from source parsing
-    expect(Object.keys(output.paths)).toHaveLength(2); // /api/users and /api/users/{id}
+    expect(Object.keys(output.paths)).toHaveLength(4); // /api/users, /api/users/{id}, /api/profile, /api/users/valibot
     
     // Verify the generated routes match our simple router implementation
     expect(output.paths).toHaveProperty("/api/users");
@@ -156,8 +156,8 @@ describe("simple-router - Non-grouped basic Hono app", () => {
     const getUsersRoute = output.paths["/api/users"].get;
     expect(getUsersRoute).toBeDefined();
     expect(getUsersRoute.tags).toEqual(["Simple Router"]);
-    expect(getUsersRoute.responses).toHaveProperty("default");
-    expect(getUsersRoute.responses["default"]).toHaveProperty("content");
+    expect(getUsersRoute.responses).toHaveProperty("200");
+    expect(getUsersRoute.responses["200"]).toHaveProperty("content");
 
     // Validate GET /api/users/{id} route
     const getUserByIdRoute = output.paths["/api/users/{id}"].get;

@@ -54,7 +54,6 @@ function findConfigFile(): string | undefined {
  * ```typescript
  * const app = new Hono()
  *   .get('/openapi.json', serveOpenAPI())
- *   .get('/openapi.json', serveOpenAPI({ config: './custom-config.ts' }))
  * ```
  */
 export const serveOpenAPI = (options: ServeOpenAPIConfig = {}) => {
