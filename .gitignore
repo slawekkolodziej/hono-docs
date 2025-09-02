@@ -1,9 +1,10 @@
-dist
-output
 node_modules
 .txt
 temp
-
 *.tgz
 
+# Test and build files
+openapi.json
+dist
+output
 coverage
