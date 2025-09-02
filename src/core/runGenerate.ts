@@ -31,6 +31,138 @@ export async function runGenerate(configPath: string) {
     tsConfigFilePath: resolve(rootPath, config.tsConfigPath),
   });
 
+  // Dynamically load validation library types if they're installed
+  const extraTypeDefs: string[] = [];
+  
+  // Helper to resolve package directory (not the main file)
+  async function tryResolvePackageDir(packageName: string): Promise<string | null> {
+    try {
+      // Try different resolution methods to get the package directory
+      const { createRequire } = await import('module');
+      const require = createRequire(import.meta.url);
+      
+      // Try to resolve the main module and find its package directory
+      try {
+        const modulePath = require.resolve(packageName, { paths: [rootPath] });
+        // Walk up from the resolved module to find package.json
+        let currentDir = path.dirname(modulePath);
+        let found = false;
+        let attempts = 0;
+        while (attempts < 10) { // Prevent infinite loop
+          const packageJsonPath = path.join(currentDir, 'package.json');
+          if (fs.existsSync(packageJsonPath)) {
+            const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+            if (packageJson.name === packageName) {
+              found = true;
+              break;
+            }
+          }
+          const parent = path.dirname(currentDir);
+          if (parent === currentDir) break; // Reached filesystem root
+          currentDir = parent;
+          attempts++;
+        }
+        if (found) return currentDir;
+      } catch (resolveError) {
+        debug("Could not resolve %s via require.resolve: %s", packageName, resolveError);
+      }
+      
+      // Fallback: try to resolve package.json directly (for packages that export it)
+      try {
+        const packageJsonPath = require.resolve(`${packageName}/package.json`, { paths: [rootPath] });
+        return path.dirname(packageJsonPath);
+      } catch (packageJsonError) {
+        debug("Could not resolve %s/package.json: %s", packageName, packageJsonError);
+      }
+    } catch (createRequireError) {
+      debug("Could not create require function: %s", createRequireError);
+    }
+    
+    try {
+      // Fallback: check if package.json exists in node_modules
+      const packageJsonPath = path.join(rootPath, 'node_modules', packageName, 'package.json');
+      if (fs.existsSync(packageJsonPath)) {
+        return path.dirname(packageJsonPath);
+      }
+    } catch {
+      // Final fallback: try project's node_modules  
+      const projectPackagePath = path.join(__dirname, '../../../node_modules', packageName, 'package.json');
+      if (fs.existsSync(projectPackagePath)) {
+        return path.dirname(projectPackagePath);
+      }
+    }
+    return null;
+  }
+  
+  // Check for Zod validator
+  const zodValidatorPath = await tryResolvePackageDir('@hono/zod-validator');
+  if (zodValidatorPath) {
+    debug("Found @hono/zod-validator, looking for Zod types");
+    const zodPath = await tryResolvePackageDir('zod');
+    if (zodPath) {
+      // Try multiple possible locations for Zod types
+      const possibleZodTypesPaths = [
+        path.join(zodPath, 'index.d.ts'),  // Main types file
+        path.join(zodPath, 'index.d.cts'), // CommonJS types file  
+        path.join(zodPath, 'lib', 'types.d.ts'),
+        path.join(zodPath, 'lib', 'index.d.ts'),
+        path.join(zodPath, 'src', 'v3', 'types.ts'),  // Source types
+        path.join(zodPath, 'src', 'v3', 'ZodError.ts') // Error types
+      ];
+      
+      // Try to load the actual Zod type definitions
+      for (const zodTypesPath of possibleZodTypesPaths) {
+        if (fs.existsSync(zodTypesPath)) {
+          debug("Loading Zod types from: %s", zodTypesPath);
+          const zodTypes = fs.readFileSync(zodTypesPath, 'utf-8');
+          extraTypeDefs.push(zodTypes);
+          break; // Use the first types file we find
+        }
+      }
+    } else {
+      debug("Could not find zod package");
+    }
+  } else {
+    debug("@hono/zod-validator not found");
+  }
+
+  // Check for Valibot validator
+  const valibotValidatorPath = await tryResolvePackageDir('@hono/valibot-validator');
+  if (valibotValidatorPath) {
+    debug("Found @hono/valibot-validator, looking for Valibot types");
+    const valibotPath = await tryResolvePackageDir('valibot');
+    if (valibotPath) {
+      // Try multiple possible locations for Valibot types
+      const possibleValibotTypesPaths = [
+        path.join(valibotPath, 'dist', 'index.d.ts'),   // Main types file
+        path.join(valibotPath, 'dist', 'index.d.cts'),  // CommonJS types file
+        path.join(valibotPath, 'index.d.ts'),           // Root types file
+        path.join(valibotPath, 'lib', 'index.d.ts'),    // Lib directory
+        path.join(valibotPath, 'src', 'index.ts')       // Source types
+      ];
+      
+      // Try to load the actual Valibot type definitions
+      for (const valibotTypesPath of possibleValibotTypesPaths) {
+        if (fs.existsSync(valibotTypesPath)) {
+          debug("Loading Valibot types from: %s", valibotTypesPath);
+          const valibotTypes = fs.readFileSync(valibotTypesPath, 'utf-8');
+          extraTypeDefs.push(valibotTypes);
+          break; // Use the first types file we find
+        }
+      }
+    } else {
+      debug("Could not find valibot package");
+    }
+  } else {
+    debug("@hono/valibot-validator not found");
+  }
+
+  // Add the collected type definitions to the project
+  if (extraTypeDefs.length > 0) {
+    debug("Adding %d validation library type definitions to project", extraTypeDefs.length);
+    project.createSourceFile("__hono_docs_validation_types.d.ts", extraTypeDefs.join('\n'), { overwrite: true });
+  }
+
   // const isDevMode =
   //   __dirname.includes("/src/") || __dirname.includes("\\src\\");
 

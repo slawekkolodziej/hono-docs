@@ -31,38 +31,14 @@ export function buildSchema(type: import("ts-morph").Type): any {
     const typeText = type.getText();
     debug("Processing intersection type: %s", typeText.substring(0, 200));
     
-    // Check for validation errors by structure
-    // Valibot: has 'typed', 'issues', 'success: false'
-    if (typeText.includes("typed") && typeText.includes("issues") && typeText.includes("success: false")) {
-      debug("Detected Valibot validation error by structure - returning simplified schema");
-      // Return a simplified schema to avoid processing array prototype methods
+    // Detect validation library error types and handle them specifically
+    if (typeText.includes("ZodSafeParseError") || typeText.includes("ZodError")) {
+      debug("Detected Zod validation error in intersection");
+      // For Zod errors, we want only: success, error (with issues)
       return {
         type: "object",
-        additionalProperties: false,
         properties: {
           success: { type: "boolean", const: false },
-          typed: { type: "boolean" },
-          output: { type: "object", additionalProperties: true },
-          issues: {
-            type: "array",
-            items: {
-              type: "object",
-              additionalProperties: true
-            }
-          }
-        },
-        required: ["success", "typed", "issues", "output"]
-      };
-    }
-    
-    // Check for Zod validation errors in intersection
-    if (typeText.includes("ZodSafeParseError") || typeText.includes("ZodError") || 
-        (typeText.includes("error") && typeText.includes("issues") && typeText.includes("success: false"))) {
-      debug("Detected Zod error in intersection");
-      return {
-        type: "object",
-        properties: {
-          success: { type: "boolean", enum: [false] },
           error: {
             type: "object",
             properties: {
@@ -72,47 +48,130 @@ export function buildSchema(type: import("ts-morph").Type): any {
                   type: "object",
                   properties: {
                     code: { type: "string" },
-                    path: { type: "array", items: { type: ["string", "number"] } },
+                    path: { type: "array", items: { oneOf: [{ type: "string" }, { type: "number" }] } },
                     message: { type: "string" }
                   },
-                  additionalProperties: true
+                  required: ["code", "path", "message"],
+                  additionalProperties: false
                 }
               }
-            }
+            },
+            required: ["issues"],
+            additionalProperties: false
           }
         },
-        required: ["success", "error"]
+        required: ["success", "error"],
+        additionalProperties: false
       };
     }
     
-    const members = type.getIntersectionTypes();
+    if (typeText.includes("typed") && typeText.includes("issues") && typeText.includes("success: false")) {
+      debug("Detected Valibot validation error in intersection");
+      // For Valibot errors, we want: success, typed, output, issues
+      const members = type.getIntersectionTypes();
+      
+      // Try to extract the actual output type from the intersection
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let outputSchema: any = { type: "object", additionalProperties: true };
+      for (const member of members) {
+        const outputProp = member.getProperty("output");
+        if (outputProp) {
+          try {
+            const outputDecl = outputProp.getValueDeclaration();
+            if (outputDecl) {
+              const outputType = outputDecl.getType();
+              outputSchema = buildSchema(outputType);
+            }
+          } catch (e) {
+            debug("Could not extract Valibot output type: %s", e);
+          }
+        }
+      }
+      
+      return {
+        type: "object",
+        properties: {
+          success: { type: "boolean", const: false },
+          typed: { type: "boolean" },
+          output: outputSchema,
+          issues: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                type: { type: "string" },
+                input: {},
+                message: { type: "string" },
+                path: { type: "array", items: { oneOf: [{ type: "string" }, { type: "number" }] } }
+              },
+              additionalProperties: true
+            }
+          }
+        },
+        required: ["success", "typed", "issues", "output"],
+        additionalProperties: false
+      };
+    }
     
-    // Try to merge all intersection members into a single object schema
-    // This handles cases like { success: false } & SafeParseResult
+    // For other intersection types, try generic merging
+    const members = type.getIntersectionTypes();
     const mergedSchema = { type: "object", properties: {}, required: [] as string[] };
+    let hasValidProperties = false;
     
     for (const member of members) {
-      const memberSchema = buildSchema(member);
-      if (memberSchema.type === "object" && memberSchema.properties) {
-        Object.assign(mergedSchema.properties, memberSchema.properties);
-        if (memberSchema.required) {
-          mergedSchema.required.push(...memberSchema.required);
+      const memberProps = member.getProperties();
+      
+      for (const prop of memberProps) {
+        const propName = prop.getName();
+        
+        // Skip prototype and method properties
+        if (propName.includes("constructor") || propName.includes("prototype") || 
+            propName.includes("valueOf") || propName.includes("toString") || 
+            propName.includes("hasOwnProperty") || typeof propName !== "string" ||
+            propName.length > 20) { // Skip very long property names (likely methods)
+          continue;
+        }
+        
+        try {
+          const propDeclaration = prop.getValueDeclaration();
+          if (propDeclaration) {
+            const propType = propDeclaration.getType();
+            mergedSchema.properties[propName] = buildSchema(propType);
+            
+            if (!prop.isOptional()) {
+              mergedSchema.required.push(propName);
+            }
+            hasValidProperties = true;
+          }
+        } catch (error) {
+          debug("Error processing intersection property %s: %s", propName, error);
+          continue;
         }
       }
     }
     
-    // If we successfully extracted properties, return the merged schema
-    if (Object.keys(mergedSchema.properties).length > 0) {
+    if (hasValidProperties && Object.keys(mergedSchema.properties).length > 0) {
+      debug("Successfully merged intersection with %d properties", Object.keys(mergedSchema.properties).length);
       return mergedSchema.required.length > 0 ? mergedSchema : { type: "object", properties: mergedSchema.properties };
     }
-    
-    // Otherwise fall through to handle as regular object
   }
   
   // Handle primitive types
   if (type.isString()) return { type: "string" };
   if (type.isNumber()) return { type: "number" };
   if (type.isBoolean()) return { type: "boolean" };
+  
+  // Handle literal types (like success: false, typed: true)
+  if (type.isBooleanLiteral()) {
+    return { type: "boolean", const: type.getLiteralValue() };
+  }
+  if (type.isStringLiteral()) {
+    return { type: "string", const: type.getLiteralValue() };
+  }
+  if (type.isNumberLiteral()) {
+    return { type: "number", const: type.getLiteralValue() };
+  }
+  
   if (type.isArray()) {
     const arrType = type.getArrayElementType();
     if (!arrType) return { type: "array" };
@@ -149,7 +208,7 @@ export function buildSchema(type: import("ts-morph").Type): any {
   
   // If we have properties, build object schema from them
   if (props.length > 0) {
-    debug(`Building schema from ${props.length} properties`);
+    debug("Building schema from %d properties", props.length);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const propsMap: Record<string, any> = {};
     const req: string[] = [];
@@ -157,15 +216,17 @@ export function buildSchema(type: import("ts-morph").Type): any {
     for (const p of props) {
       const propName = p.getName();
       
-      // Skip symbol properties and internal properties
-      if (propName.startsWith("__") || propName.startsWith("Symbol.")) {
+      // Skip problematic prototype methods
+      if (propName.includes("constructor") || propName.includes("prototype") || 
+          propName.includes("valueOf") || propName.includes("toString") || 
+          propName.includes("hasOwnProperty")) {
         continue;
       }
       
       try {
-        const decl = p.getValueDeclaration();
-        if (decl) {
-          const propType = decl.getType();
+        const propDeclaration = p.getValueDeclaration();
+        if (propDeclaration) {
+          const propType = propDeclaration.getType();
           propsMap[propName] = buildSchema(propType);
           if (!p.isOptional()) {
             req.push(propName);
@@ -195,93 +256,8 @@ export function buildSchema(type: import("ts-morph").Type): any {
   );
   
   if (!isLit) {
-    // If we can't determine the structure, check the type text for hints
-    const typeText = type.getText();
-    debug(`Unable to determine structure for type: ${typeText.substring(0, 100)}`);
-    
-    // Detect Zod validation errors
-    if (typeText.includes("z.ZodSafeParseError") || typeText.includes("ZodError")) {
-      return {
-        type: "object",
-        properties: {
-          success: { type: "boolean", enum: [false] },
-          error: {
-            type: "object",
-            properties: {
-              issues: {
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    code: { type: "string" },
-                    path: { type: "array", items: { type: ["string", "number"] } },
-                    message: { type: "string" }
-                  },
-                  additionalProperties: true
-                }
-              }
-            }
-          }
-        },
-        required: ["success", "error"]
-      };
-    }
-    
-    // Detect Valibot validation errors (check for v. prefixed types)
-    if (typeText.includes("v.") && (typeText.includes("Issue") || typeText.includes("success: false"))) {
-      return {
-        type: "object",
-        properties: {
-          success: { type: "boolean", enum: [false] },
-          typed: { type: "boolean" },
-          output: { type: ["object", "null"], additionalProperties: true },
-          issues: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                kind: { type: "string" },
-                type: { type: "string" },
-                input: { type: ["string", "number", "boolean", "object", "array", "null"] },
-                expected: { type: ["string", "null"] },
-                received: { type: ["string", "null"] },
-                message: { type: "string" },
-                path: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      type: { type: "string" },
-                      origin: { type: "string" },
-                      input: { type: ["string", "number", "boolean", "object", "array", "null"] },
-                      key: { type: ["string", "number", "null"] },
-                      value: { type: ["string", "number", "boolean", "object", "array", "null"] }
-                    }
-                  }
-                }
-              },
-              additionalProperties: true
-            }
-          }
-        },
-        required: ["success", "issues"]
-      };
-    }
-    
-    // Generic validation error fallback
-    if (typeText.includes("SafeParseResult") || typeText.includes("success: false")) {
-      return {
-        type: "object",
-        properties: {
-          success: { type: "boolean", enum: [false] },
-          error: { type: "object", additionalProperties: true },
-          issues: { type: "array", items: { type: "object", additionalProperties: true } }
-        },
-        required: ["success"]
-      };
-    }
-    
-    // Default fallback for unknown object types
+    // Final fallback for truly unknown types
+    debug("Unable to determine structure for type: %s", type.getText().substring(0, 100));
     return { type: "object", additionalProperties: true };
   }
 
@@ -291,7 +267,6 @@ export function buildSchema(type: import("ts-morph").Type): any {
     .filter(
       (p) => p.getValueDeclaration()?.getKind() === SyntaxKind.PropertySignature
     );
-  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const propsMap: Record<string, any> = {};
   const req: string[] = [];
@@ -300,7 +275,6 @@ export function buildSchema(type: import("ts-morph").Type): any {
     propsMap[p.getName()] = buildSchema(decl.getType());
     if (!p.isOptional()) req.push(p.getName());
   }
-  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const res: any = { type: "object", properties: propsMap };
   if (req.length) res.required = req;
