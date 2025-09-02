@@ -19,6 +19,19 @@ export async function generateTypes({
   const outputPath = path.join(outputRoot, `${fileName}.d.ts`);
   const absInput = path.resolve(rootPath, apiGroup.appTypePath);
 
+  // Clean up any existing file first to avoid stale data
+  if (fs.existsSync(outputPath)) {
+    fs.unlinkSync(outputPath);
+    debug("Removed existing type file: %s", outputPath);
+  }
+
+  // Remove any existing source file from the project to avoid cached AST data
+  const existingFile = project.getSourceFile(absInput);
+  if (existingFile) {
+    project.removeSourceFile(existingFile);
+    debug("Removed cached source file from ts-morph project: %s", absInput);
+  }
+  
   const sourceFile = project.addSourceFileAtPath(absInput);
   const typeAliases = sourceFile.getTypeAliases();
   const interfaces = sourceFile.getInterfaces();

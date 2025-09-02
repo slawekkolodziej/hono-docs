@@ -22,7 +22,7 @@ function sanitizeFileName(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
-export async function runGenerate(configPath: string) {
+export async function runGenerate(configPath: string, options: { rebuild?: boolean } = {}) {
   const config = await loadConfig(configPath);
 
   const rootPath = process.cwd();
@@ -184,6 +184,19 @@ export async function runGenerate(configPath: string) {
   const snapshotOutputRoot = path.resolve(libDir, "output/types");
   const openAPiOutputRoot = path.resolve(libDir, "output/openapi");
 
+  // Force clean rebuild if requested
+  if (options.rebuild) {
+    debug("Rebuild requested - cleaning intermediate output directories");
+    if (fs.existsSync(snapshotOutputRoot)) {
+      fs.rmSync(snapshotOutputRoot, { recursive: true, force: true });
+      debug("Removed types output directory: %s", snapshotOutputRoot);
+    }
+    if (fs.existsSync(openAPiOutputRoot)) {
+      fs.rmSync(openAPiOutputRoot, { recursive: true, force: true });
+      debug("Removed OpenAPI output directory: %s", openAPiOutputRoot);
+    }
+  }
+
   const commonParams = {
     config,
     libDir,
@@ -273,8 +286,14 @@ export async function runGenerate(configPath: string) {
   }
 
   const outputPath = path.join(rootPath, config.outputs.openApiJson);
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  
+  // Clean up any existing file first to avoid stale data
+  if (fs.existsSync(outputPath)) {
+    fs.unlinkSync(outputPath);
+    debug("Removed existing final OpenAPI file: %s", outputPath);
+  }
 
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, `${JSON.stringify(merged, null, 2)}\n`);
 
   console.log(`✅ OpenAPI spec written to: ${outputPath}`);
