@@ -1,0 +1,48 @@
+{
+  "name": "@hono/valibot-validator",
+  "version": "0.6.1",
+  "description": "Validator middleware using Valibot",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "yarn build:pkg",
+    "lint": "eslint",
+    "typecheck": "tsc -b tsconfig.json",
+    "test": "vitest",
+    "version:jsr": "yarn version:set $npm_package_version"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public",
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.cjs"
+      },
+      "./package.json": "./package.json"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/honojs/middleware.git",
+    "directory": "packages/valibot-validator"
+  },
+  "homepage": "https://github.com/honojs/middleware",
+  "peerDependencies": {
+    "hono": ">=3.9.0",
+    "valibot": "^1.0.0 || ^1.0.0-beta.4 || ^1.0.0-rc"
+  },
+  "devDependencies": {}
+}

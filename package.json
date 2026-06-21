@@ -1,16 +1,16 @@
 {
-  "name": "@rcmade/hono-docs",
+  "name": "@slawekkolodziej/hono-docs",
   "version": "1.0.30",
   "description": "Auto-generate OpenAPI 3.0 spec from Hono route types",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rcmade/hono-docs.git"
+    "url": "https://github.com/slawekkolodziej/hono-docs.git"
   },
   "bugs": {
-    "url": "https://github.com/rcmade/hono-docs/issues"
+    "url": "https://github.com/slawekkolodziej/hono-docs/issues"
   },
-  "homepage": "https://github.com/rcmade/hono-docs#readme",
+  "homepage": "https://github.com/slawekkolodziej/hono-docs#readme",
   "keywords": [
     "openapi",
     "hono",
@@ -19,19 +19,28 @@
     "cli",
     "generator"
   ],
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
   "bin": {
-    "hono-docs": "dist/cli/index.js"
+    "hono-docs": "dist/cli/index.mjs"
   },
   "exports": {
-    ".": "./dist/index.js",
-    "./core": "./dist/core/index.js",
-    "./cli": "./dist/cli/index.js",
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.mts",
+      "import": "./dist/core/index.mjs"
+    },
+    "./cli": {
+      "types": "./dist/cli/index.d.mts",
+      "import": "./dist/cli/index.mjs"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown",
     "lint": "eslint . --ext .ts,.js",
     "test": "vitest run",
     "test.unit": "vitest run tests/unit",
@@ -51,34 +60,40 @@
     "dist"
   ],
   "dependencies": {
-    "debug": "^4.4.1",
+    "@hono/swagger-ui": "^0.6.1",
+    "@hono/valibot-validator": "workspace:*",
+    "@hono/zod-validator": "workspace:*",
+    "debug": "^4.4.3",
     "esbuild-register": "^3.6.0",
     "ts-morph": "^26.0.0",
-    "tsx": "^4.20.3",
-    "yargs": "^18.0.0"
+    "tsx": "^4.21.0",
+    "valibot": "^1.3.1",
+    "yargs": "^18.0.0",
+    "zod": "~4.3.6"
   },
   "devDependencies": {
-    "@eslint/js": "^9.29.0",
-    "@scalar/hono-api-reference": "^0.9.16",
+    "@eslint/js": "^9.39.4",
+    "@scalar/hono-api-reference": "^0.10.7",
     "@types/debug": "^4.1.12",
     "@types/node": "^24.0.3",
     "@types/yargs": "^17.0.33",
+    "@rcmade/hono-docs": "link:.",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
     "@vitest/coverage-v8": "3.2.4",
-    "esbuild": "^0.25.5",
-    "eslint": "^9.29.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-format": "^1.0.1",
+    "esbuild": "^0.28.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-format": "^1.5.0",
     "eslint-plugin-import": "^2.32.0",
-    "globals": "^16.2.0",
-    "hono": "^4.9.4",
-    "husky": "^8.0.0",
+    "globals": "^16.5.0",
+    "hono": "4.12.26",
+    "husky": "^8.0.3",
     "openapi-types": "^12.1.3",
     "standard-version": "^9.5.0",
-    "tsup": "^8.5.0",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.33.1",
+    "tsdown": "^0.21.8",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.58.2",
     "vitest": "^3.2.4"
   }
 }
