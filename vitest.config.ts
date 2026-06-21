@@ -23,7 +23,7 @@ export default defineConfig({
         // Common exclusions
         'node_modules/**',
         'dist/**',
-        'integration-tests/**',
+        'integration/**',
         '**/*.config.ts',
         '**/*.config.js',
       ],

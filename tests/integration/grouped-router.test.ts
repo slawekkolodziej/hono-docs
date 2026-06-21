@@ -3,9 +3,9 @@ import fs from "fs";
 import path from "path";
 import { runGenerate } from "../../src/core/runGenerate";
 
-// Test files are located in integration-tests directory
+// Test files are located in integration directory
 const rootDir = path.resolve(import.meta.dirname, "../..");
-const integrationTestsDir = path.join(rootDir, "integration-tests");
+const integrationTestsDir = path.join(rootDir, "integration");
 
 describe.each([
   {

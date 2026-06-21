@@ -26,6 +26,7 @@
   - [Serving the OpenAPI Docs](#serving-the-openapi-docs)
   - [Configuration](#configuration)
   - [CLI Usage](#cli-usage)
+    - [Debug Logging](#debug-logging)
   - [Programmatic Usage](#programmatic-usage)
   - [Examples](#examples)
   - [Development](#development)
@@ -357,7 +358,7 @@ import { runGenerate, defineConfig } from "@rcmade/hono-docs";
 
 ## Examples
 
-Check out [`integration-tests/manual-routes/`](https://github.com/rcmade/hono-docs/tree/main/integration-tests/manual-routes) for a manual route setup example, or browse other patterns in [`integration-tests/`](https://github.com/rcmade/hono-docs/tree/main/integration-tests).
+Check out [`integration/manual-routes/`](https://github.com/rcmade/hono-docs/tree/main/integration/manual-routes) for a manual route setup example, or browse other patterns in [`integration/`](https://github.com/rcmade/hono-docs/tree/main/integration).
 
 ---
 

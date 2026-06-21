@@ -5,7 +5,7 @@ export default defineConfig({
   openApi: {
     openapi: "3.0.0",
     info: {
-      title: "Simple Grouped App Test API",
+      title: "Simple Grouped App Test API", 
       version: "1.0.0",
     },
   },
@@ -13,6 +13,6 @@ export default defineConfig({
     openApiJson: "./openapi.json",
   },
   name: "Simple Grouped App",
-  appTypePath: "./src/routes.ts",
-  // Intentionally leaving api array empty to test auto-discovery
+  appTypePath: "./routes.ts",
+  excludePaths: ["/openapi.json", "/swagger"],
 });

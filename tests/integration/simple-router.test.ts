@@ -3,9 +3,9 @@ import fs from "fs";
 import path from "path";
 import { runGenerate } from "../../src/core/runGenerate";
 
-// Test files are located in integration-tests directory
+// Test files are located in integration directory
 const rootDir = path.resolve(import.meta.dirname, "../..");
-const integrationTestsDir = path.join(rootDir, "integration-tests");
+const integrationTestsDir = path.join(rootDir, "integration");
 
 describe("manual-routes - Manual API definitions with overrides", () => {
   const configPath = "./manual-routes/hono-docs.ts";
@@ -72,12 +72,7 @@ describe("simple-router - Non-grouped basic Hono app", () => {
   const outputPath = path.resolve(testCaseDir, "openapi.json");
 
   test("generates complete OpenAPI spec with simple router support", async () => {
-    // FIXED: Simple Hono apps now work! 
-    // 
-    // When TypeScript generates BlankSchema for simple apps, we fall back to 
-    // source code parsing to extract routes directly from the AST.
-    //
-    // This generates complete OpenAPI with all routes and HTTP methods.
+    // Simple Hono apps should be generated from Hono's inferred route schema.
     
     // Change to the test case directory to match CLI behavior
     const originalCwd = process.cwd();
@@ -97,7 +92,7 @@ describe("simple-router - Non-grouped basic Hono app", () => {
     expect(output).toHaveProperty("info");
     expect(output).toHaveProperty("paths");
     
-    // Now generates complete paths from source parsing
+    // Now generates complete paths from inferred route types.
     expect(Object.keys(output.paths)).toHaveLength(4); // /api/users, /api/users/{id}, /api/profile, /api/users/valibot
     
     // Verify the generated routes match our simple router implementation
@@ -163,7 +158,7 @@ describe("simple-router - Non-grouped basic Hono app", () => {
     const getUserByIdRoute = output.paths["/api/users/{id}"].get;
     expect(getUserByIdRoute).toBeDefined();
     expect(getUserByIdRoute.tags).toEqual(["Simple Router"]);
-    // Note: Simple router fallback doesn't generate parameter schemas from source parsing
+    // Route parameters are inferred from Hono route types.
 
     // Validate POST /api/users route
     const postUsersRoute = output.paths["/api/users"].post;
