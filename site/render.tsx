@@ -124,19 +124,42 @@ function Markdown({ children }: { children: string }) {
   return <div class='markdown' dangerouslySetInnerHTML={{ __html: renderMarkdown(children) }} />
 }
 
-function PageNav() {
-  const links = [
-    ['Install', '#install'],
-    ['OpenAPI JSON', '#openapi-json'],
-    ['Existing UI', '#existing-ui'],
-    ['Config', '#config'],
-    ['Examples', '#examples'],
+function PageNav({ examples }: { examples: Example[] }) {
+  const groups = [
+    {
+      label: 'Start',
+      links: [
+        ['Overview', '#get-started'],
+        ['Install', '#install'],
+        ['OpenAPI JSON', '#openapi-json'],
+        ['OpenAPI UI', '#existing-ui'],
+      ],
+    },
+    {
+      label: 'Config',
+      links: [
+        ['Configuration', '#config'],
+        ['doc() middleware', '#doc-middleware'],
+      ],
+    },
+    {
+      label: 'Examples',
+      links: [
+        ['All examples', '#examples'],
+        ...examples.map((example) => [example.name, `#example-${example.slug}`]),
+      ],
+    },
   ]
 
   return (
     <>
-      {links.map(([label, href]) => (
-        <a href={href}>{label}</a>
+      {groups.map((group) => (
+        <div class='nav-group'>
+          <div class='nav-group-label'>{group.label}</div>
+          {group.links.map(([label, href]) => (
+            <a href={href}>{label}</a>
+          ))}
+        </div>
       ))}
     </>
   )
@@ -200,7 +223,7 @@ function Layout({ title, children }: { title: string; children: Child }) {
           href='https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap'
           rel='stylesheet'
         />
-        <link rel='stylesheet' href='/assets/site.css?v=3' />
+        <link rel='stylesheet' href='/assets/site.css?v=5' />
       </head>
       <body>
         <header class='topbar'>
@@ -229,12 +252,9 @@ function ExampleRows({
   return (
     <>
       {examples.map((example) => (
-        <article class='example-row' id={example.slug}>
-          <div>
+        <article class='example-row' id={`example-${example.slug}`}>
+          <div class='example-copy'>
             <h3>{example.name}</h3>
-            <p>{example.title}</p>
-          </div>
-          <div>
             <Markdown>{example.description}</Markdown>
             <div class='links example-links'>
               <a href={swaggerPath(example)}>
@@ -247,14 +267,14 @@ function ExampleRows({
                 <Icon name='json' /> openapi.json
               </a>
             </div>
-            <details class='source-toggle'>
-              <summary>
-                <Icon name='api' /> app.ts
-              </summary>
-              <CodeBlock>
-                {appSources[example.slug] ?? 'Unable to load integration app source.'}
-              </CodeBlock>
-            </details>
+          </div>
+          <div class='example-source'>
+            <div class='source-heading'>
+              <Icon name='api' /> app.ts
+            </div>
+            <CodeBlock>
+              {appSources[example.slug] ?? 'Unable to load integration app source.'}
+            </CodeBlock>
           </div>
         </article>
       ))}
@@ -280,7 +300,7 @@ export function renderHome(examples: Example[], appSources: Record<string, strin
     <Layout title='hono-docs'>
       <main class='page'>
         <aside class='sidebar' aria-label='On this page'>
-          <PageNav />
+          <PageNav examples={examples} />
         </aside>
         <div class='content'>
           <section class='hero'>
@@ -291,27 +311,37 @@ export function renderHome(examples: Example[], appSources: Record<string, strin
               Scalar, Swagger UI, or any OpenAPI client tooling.
             </p>
             <div class='actions'>
-              <a class='button' href='#openapi-json'>
-                See the Hono example
+              <a class='button' href='#get-started'>
+                Get started
               </a>
               <a class='button secondary' href='#examples'>
-                Browse fixtures
+                Browse examples
               </a>
             </div>
           </section>
 
-          <section class='section' id='install'>
-            <h2>Install</h2>
-            <CodeBlock>pnpm add hono-docs @scalar/hono-api-reference @hono/swagger-ui</CodeBlock>
-          </section>
+          <section class='section' id='get-started'>
+            <div class='section-intro'>
+              <h2>Getting started</h2>
+              <p>
+                Add the package, expose <code>openapi.json</code>, then point any OpenAPI UI at that
+                JSON endpoint.
+              </p>
+            </div>
 
-          <section class='section' id='openapi-json'>
-            <h2>Expose OpenAPI JSON from Hono</h2>
-            <p>
-              Add the OpenAPI middleware to your app. The generated document is based on the
-              exported <code>AppType</code>.
-            </p>
-            <CodeBlock>{`
+            <article class='setup-step' id='install'>
+              <h3>Install</h3>
+              <p>Add the npm modules used by the generator and optional UI middleware.</p>
+              <CodeBlock>pnpm add hono-docs @scalar/hono-api-reference @hono/swagger-ui</CodeBlock>
+            </article>
+
+            <article class='setup-step' id='openapi-json'>
+              <h3>Expose OpenAPI JSON from Hono</h3>
+              <p>
+                Add the OpenAPI middleware to your app. The generated document is based on the
+                exported <code>AppType</code>.
+              </p>
+              <CodeBlock>{`
 import { Hono } from "hono";
 import { serveOpenAPI } from "hono-docs";
 
@@ -322,40 +352,40 @@ const app = new Hono()
 
 export type AppType = typeof app;
 export default app;
-            `}</CodeBlock>
-          </section>
+              `}</CodeBlock>
+            </article>
 
-          <section class='section' id='existing-ui'>
-            <div>
-              <h2>Use existing OpenAPI UI middleware</h2>
+            <article class='setup-step' id='existing-ui'>
+              <h3>Use existing OpenAPI UI middleware</h3>
               <p>
                 hono-docs only needs to expose <code>openapi.json</code>. Existing Hono middleware
                 such as Scalar and Swagger UI can read that endpoint without any custom adapter.
               </p>
-            </div>
-            <div class='code-grid'>
-              <CodeBlock>{`
+              <div class='code-grid'>
+                <CodeBlock>{`
 import { Scalar } from "@scalar/hono-api-reference";
 
 app.get("/docs", Scalar({
   url: "/openapi.json",
 }));
-              `}</CodeBlock>
-              <CodeBlock>{`
+                `}</CodeBlock>
+                <CodeBlock>{`
 import { swaggerUI } from "@hono/swagger-ui";
 
 app.get("/swagger", swaggerUI({
   url: "/openapi.json",
 }));
-              `}</CodeBlock>
-            </div>
+                `}</CodeBlock>
+              </div>
+            </article>
           </section>
 
           <section class='section' id='config'>
             <h2>Configuration</h2>
             <p>
-              Configure the generator with your app type path, output target, OpenAPI metadata, and
-              optional manual route metadata.
+              Configure the generator with the TypeScript project, exported app type, output target,
+              OpenAPI metadata, and explicit exclusions for routes that should not appear in the
+              generated document.
             </p>
             <CodeBlock>{`
 import { defineConfig } from "hono-docs";
@@ -375,6 +405,32 @@ export default defineConfig({
     },
   },
 });
+            `}</CodeBlock>
+          </section>
+
+          <section class='section' id='doc-middleware'>
+            <h2>doc() middleware</h2>
+            <p>
+              <code>doc()</code> is a no-op Hono middleware. It does not change request handling,
+              response handling, validation, or runtime behavior. hono-docs reads it at generation
+              time to add OpenAPI operation metadata next to the route that owns it.
+            </p>
+            <CodeBlock>{`
+import { doc } from "hono-docs";
+
+app.get(
+  "/users/:id",
+  doc({
+    summary: "Get user",
+    description: \`
+      Adds OpenAPI metadata only.
+
+      The handler still controls the runtime response.
+    \`,
+    tags: ["Users"],
+  }),
+  (c) => c.json({ id: c.req.param("id") })
+);
             `}</CodeBlock>
           </section>
 
