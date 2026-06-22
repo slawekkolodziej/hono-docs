@@ -19,11 +19,14 @@ This fixture is intentionally a backing case for the Hono type change.",
   "paths": {
     "/docs": {
       "get": {
-        "description": "This route uses middleware that can return a 500 response.
+        "description": "This route uses middleware that can return a
+500 response.
 
-Not supported yet: Hono route types do not currently expose middleware
-responses to the schema used by hono-docs, so the generated OpenAPI
-document only includes the handler response.",
+Not supported yet: Hono route types do not
+currently expose middleware responses to the
+schema used by hono-docs, so the generated
+OpenAPI document only includes the handler
+response.",
         "responses": {
           "200": {
             "content": {

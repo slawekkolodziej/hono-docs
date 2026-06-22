@@ -52,7 +52,8 @@ Works:
     },
     "/users": {
       "get": {
-        "description": "Returns a static user list from a single-file Hono app.",
+        "description": "Returns a static user list from a
+single-file Hono app.",
         "responses": {
           "200": {
             "content": {
@@ -96,7 +97,8 @@ Works:
     },
     "/users/{id}": {
       "get": {
-        "description": "Shows how path parameters are inferred from a basic route.",
+        "description": "Shows how path parameters are inferred
+from a basic route.",
         "parameters": [
           {
             "in": "path",

@@ -1,24 +1,40 @@
 import { vValidator } from '@hono/valibot-validator'
 import { Hono } from 'hono'
 import { createUser, getUser } from './data'
-import { CreateUserSchema, SearchQuerySchema, UserParamSchema } from './schemas'
+import {
+  CreateUserSchema,
+  SearchQuerySchema,
+  UserParamSchema,
+} from './schemas'
 
 const app = new Hono()
-  .get('/search', vValidator('query', SearchQuerySchema), (c) => {
-    const query = c.req.valid('query')
+  .get(
+    '/search',
+    vValidator('query', SearchQuerySchema),
+    (c) => {
+      const query = c.req.valid('query')
 
-    return c.json({ query })
-  })
-  .get('/users/:id', vValidator('param', UserParamSchema), (c) => {
-    const params = c.req.valid('param')
+      return c.json({ query })
+    }
+  )
+  .get(
+    '/users/:id',
+    vValidator('param', UserParamSchema),
+    (c) => {
+      const params = c.req.valid('param')
 
-    return c.json({ user: getUser(params.id) })
-  })
-  .post('/users', vValidator('json', CreateUserSchema), (c) => {
-    const body = c.req.valid('json')
+      return c.json({ user: getUser(params.id) })
+    }
+  )
+  .post(
+    '/users',
+    vValidator('json', CreateUserSchema),
+    (c) => {
+      const body = c.req.valid('json')
 
-    return c.json({ user: createUser(body) }, 201)
-  })
+      return c.json({ user: createUser(body) }, 201)
+    }
+  )
 
 export default app
 export type AppType = typeof app

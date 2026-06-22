@@ -55,7 +55,8 @@ This description is markdown supplied by doc().",
     "/legacy": {
       "get": {
         "deprecated": true,
-        "description": "This endpoint is **deprecated** and will be removed in v2.0.",
+        "description": "This endpoint is **deprecated** and will be
+removed in v2.0.",
         "responses": {
           "200": {
             "content": {
@@ -84,9 +85,11 @@ This description is markdown supplied by doc().",
     },
     "/users": {
       "get": {
-        "description": "Retrieve a paginated list of users with optional filtering.
+        "description": "Retrieve a paginated list of users with
+optional filtering.
 
-This is a compact example of markdown coming from doc() middleware.",
+This is a compact example of markdown
+coming from doc() middleware.",
         "responses": {
           "200": {
             "content": {
@@ -162,7 +165,8 @@ Required fields:
       "get": {
         "description": "## Retrieve user details
 
-Retrieve detailed information about a specific user by their unique ID.",
+Retrieve detailed information about a
+specific user by their unique ID.",
         "parameters": [
           {
             "in": "path",

@@ -12,7 +12,8 @@ const app = new Hono()
     doc({
       summary: 'List users',
       description: `
-        Returns a static user list from a single-file Hono app.
+        Returns a static user list from a
+        single-file Hono app.
       `,
       tags: ['Users'],
     }),
@@ -23,12 +24,15 @@ const app = new Hono()
     doc({
       summary: 'Get user',
       description: `
-        Shows how path parameters are inferred from a basic route.
+        Shows how path parameters are inferred
+        from a basic route.
       `,
       tags: ['Users'],
     }),
     (c) => {
-      const user = users.find((item) => item.id === c.req.param('id'))
+      const user = users.find(
+        (item) => item.id === c.req.param('id')
+      )
 
       if (!user) {
         return c.json({ error: 'User not found' }, 404)

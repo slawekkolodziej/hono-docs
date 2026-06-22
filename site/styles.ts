@@ -390,16 +390,14 @@ p code {
 
 .example-source pre {
   max-height: 560px;
-  overflow-x: hidden;
-  white-space: pre-wrap;
+  overflow-x: auto;
+  white-space: pre;
 }
 
 .example-source code {
   display: block;
   max-width: 100%;
-  overflow-wrap: anywhere;
   white-space: inherit;
-  word-break: break-word;
 }
 
 .links {

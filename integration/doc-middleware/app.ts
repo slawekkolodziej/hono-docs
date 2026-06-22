@@ -28,9 +28,11 @@ const app = new Hono()
     doc({
       summary: 'List all users',
       description: `
-        Retrieve a paginated list of users with optional filtering.
+        Retrieve a paginated list of users with
+        optional filtering.
 
-        This is a compact example of markdown coming from doc() middleware.
+        This is a compact example of markdown
+        coming from doc() middleware.
       `,
       tags: ['Users'],
     }),
@@ -43,7 +45,8 @@ const app = new Hono()
       description: `
         ## Retrieve user details
 
-        Retrieve detailed information about a specific user by their unique ID.
+        Retrieve detailed information about a
+        specific user by their unique ID.
       `,
       tags: ['Users'],
     }),
@@ -70,7 +73,8 @@ const app = new Hono()
     doc({
       summary: 'Legacy endpoint',
       description: `
-        This endpoint is **deprecated** and will be removed in v2.0.
+        This endpoint is **deprecated** and will be
+        removed in v2.0.
       `,
       tags: ['Legacy'],
       deprecated: true,
@@ -83,7 +87,10 @@ const app = new Hono()
       url: '/openapi.json',
       theme: 'kepler',
       layout: 'modern',
-      defaultHttpClient: { targetKey: 'js', clientKey: 'axios' },
+      defaultHttpClient: {
+        targetKey: 'js',
+        clientKey: 'axios',
+      },
     })
   )
   .get('/openapi.json', serveOpenAPI({ config }))
