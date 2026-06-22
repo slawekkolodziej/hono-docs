@@ -44,6 +44,7 @@
   },
   "scripts": {
     "build": "tsdown",
+    "clean": "node ./scripts/clean.js",
     "lint": "oxlint",
     "lint.fix": "oxlint --fix",
     "lint.eslint": "eslint . --ext .ts,.tsx,.js",
