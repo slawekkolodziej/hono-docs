@@ -276,6 +276,28 @@ p code {
   padding: 1px 5px;
 }
 
+.anchor-heading {
+  scroll-margin-top: 96px;
+}
+
+.anchor-heading a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.anchor-heading a::after {
+  content: "#";
+  margin-left: 8px;
+  color: var(--muted);
+  opacity: 0;
+  font-weight: 600;
+}
+
+.anchor-heading a:hover::after,
+.anchor-heading a:focus-visible::after {
+  opacity: 1;
+}
+
 .section-heading {
   display: flex;
   justify-content: space-between;
@@ -542,6 +564,13 @@ p code {
 .api-member code {
   color: var(--text);
   overflow-wrap: anywhere;
+}
+
+.api-member span code {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--soft);
+  padding: 1px 5px;
 }
 
 .plain-list {

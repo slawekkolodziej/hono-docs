@@ -53,6 +53,30 @@ function renderInlineMarkdown(value: string): string {
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
 }
 
+function renderInlineMarkdownHtml(value: string): { __html: string } {
+  return { __html: renderInlineMarkdown(value) }
+}
+
+function AnchorHeading({
+  level,
+  id,
+  children,
+}: {
+  level: 2 | 3
+  id: string
+  children: string
+}) {
+  const Heading = `h${level}` as 'h2' | 'h3'
+
+  return (
+    <Heading id={id} class='anchor-heading'>
+      <a href={`#${id}`} aria-label={`Link to ${children}`}>
+        {children}
+      </a>
+    </Heading>
+  )
+}
+
 function renderMarkdown(value: string): string {
   const lines = value.trim().split('\n')
   const html: string[] = []
@@ -106,7 +130,12 @@ function renderMarkdown(value: string): string {
       flushParagraph()
 
       const level = heading[1].length + 1
-      html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`)
+      const id = slugify(heading[2])
+      html.push(
+        `<h${level} id="${id}" class="anchor-heading"><a href="#${id}" aria-label="Link to ${escapeHtml(
+          heading[2]
+        )}">${renderInlineMarkdown(heading[2])}</a></h${level}>`
+      )
       continue
     }
 
@@ -269,9 +298,11 @@ function ExampleRows({
   return (
     <>
       {examples.map((example) => (
-        <article class='example-row' id={`example-${example.slug}`}>
+        <article class='example-row'>
           <div class='example-copy'>
-            <h3>{example.name}</h3>
+            <AnchorHeading level={3} id={`example-${example.slug}`}>
+              {example.name}
+            </AnchorHeading>
             <Markdown>{example.description}</Markdown>
             <div class='links example-links'>
               <a href={swaggerPath(example)}>
@@ -324,23 +355,29 @@ export function renderHome(examples: Example[], appSources: Record<string, strin
             </div>
           </section>
 
-          <section class='section' id='get-started'>
+          <section class='section'>
             <div class='section-intro'>
-              <h2>Getting started</h2>
+              <AnchorHeading level={2} id='get-started'>
+                Getting started
+              </AnchorHeading>
               <p>
                 Add the package, expose <code>openapi.json</code>, then point any OpenAPI UI at that
                 JSON endpoint.
               </p>
             </div>
 
-            <article class='setup-step' id='install'>
-              <h3>Install</h3>
+            <article class='setup-step'>
+              <AnchorHeading level={3} id='install'>
+                Install
+              </AnchorHeading>
               <p>Add the npm modules used by the generator and optional UI middleware.</p>
               <CodeBlock>pnpm add hono-docs @scalar/hono-api-reference @hono/swagger-ui</CodeBlock>
             </article>
 
-            <article class='setup-step' id='openapi-json'>
-              <h3>Expose OpenAPI JSON from Hono</h3>
+            <article class='setup-step'>
+              <AnchorHeading level={3} id='openapi-json'>
+                Expose OpenAPI JSON from Hono
+              </AnchorHeading>
               <p>
                 Add the OpenAPI middleware to your app. The generated document is based on the
                 exported <code>AppType</code>.
@@ -359,8 +396,10 @@ export default app;
               `}</CodeBlock>
             </article>
 
-            <article class='setup-step' id='existing-ui'>
-              <h3>Use existing OpenAPI UI middleware</h3>
+            <article class='setup-step'>
+              <AnchorHeading level={3} id='existing-ui'>
+                Use existing OpenAPI UI middleware
+              </AnchorHeading>
               <p>
                 hono-docs only needs to expose <code>openapi.json</code>. Existing Hono middleware
                 such as Scalar and Swagger UI can read that endpoint without any custom adapter.
@@ -384,8 +423,10 @@ app.get("/swagger", swaggerUI({
             </article>
           </section>
 
-          <section class='section' id='config'>
-            <h2>Configuration</h2>
+          <section class='section'>
+            <AnchorHeading level={2} id='config'>
+              Configuration
+            </AnchorHeading>
             <p>
               Configure the generator with the TypeScript project, exported app type, output target,
               OpenAPI metadata, and explicit exclusions for routes that should not appear in the
@@ -412,8 +453,10 @@ export default defineConfig({
             `}</CodeBlock>
           </section>
 
-          <section class='section' id='doc-middleware'>
-            <h2>doc() middleware</h2>
+          <section class='section'>
+            <AnchorHeading level={2} id='doc-middleware'>
+              doc() middleware
+            </AnchorHeading>
             <p>
               <code>doc()</code> is a no-op Hono middleware. It does not change request handling,
               response handling, validation, or runtime behavior. hono-docs reads it at generation
@@ -438,9 +481,11 @@ app.get(
             `}</CodeBlock>
           </section>
 
-          <section class='section' id='examples'>
+          <section class='section'>
             <div class='section-heading'>
-              <h2>Integration apps</h2>
+              <AnchorHeading level={2} id='examples'>
+                Integration apps
+              </AnchorHeading>
               <p>
                 Real Hono apps mounted under <code>/integration/:name</code>, with generated JSON
                 and ready-to-open Scalar and Swagger views.
@@ -481,8 +526,10 @@ export async function renderApiDocs() {
 
           <ApiReference sections={sections} />
 
-          <section class='section' id='cli'>
-            <h2>CLI</h2>
+          <section class='section'>
+            <AnchorHeading level={2} id='cli'>
+              CLI
+            </AnchorHeading>
             <CodeBlock>{`
 pnpm hono-docs generate --config hono-docs.config.ts
 pnpm hono-docs generate --config hono-docs.config.ts --rebuild
@@ -540,10 +587,12 @@ function ApiReference({ sections }: { sections: ApiReferenceSection[] }) {
         const sectionSlug = slugify(section.title)
 
         return (
-          <section class='section api-reference' id={sectionSlug}>
+          <section class='section api-reference'>
             <div class='section-intro'>
-              <h2>{section.title}</h2>
-              <p>{section.description}</p>
+              <AnchorHeading level={2} id={sectionSlug}>
+                {section.title}
+              </AnchorHeading>
+              <p dangerouslySetInnerHTML={renderInlineMarkdownHtml(section.description)} />
             </div>
             {section.functions.length > 0 && (
               <ApiReferenceGroup
@@ -572,9 +621,11 @@ function ApiReferenceGroup({
   items: ApiReferenceMember[]
 }) {
   return (
-    <div class='api-reference-group' id={id}>
+    <div class='api-reference-group'>
       <div class='api-reference-group-heading'>
-        <h3>{title}</h3>
+        <AnchorHeading level={3} id={id}>
+          {title}
+        </AnchorHeading>
       </div>
       <div class='api-reference-list'>
         {items.map((item) => (
@@ -586,11 +637,15 @@ function ApiReferenceGroup({
 }
 
 function ApiReferenceItem({ item }: { item: ApiReferenceMember }) {
+  const headingId = `${item.kind}-${slugify(item.name)}`
+
   return (
     <article class={`api-reference-item ${item.kind}`}>
       <div class='api-reference-heading'>
         <div>
-          <h3>{item.name}</h3>
+          <AnchorHeading level={3} id={headingId}>
+            {item.name}
+          </AnchorHeading>
           <span class={`api-kind ${item.kind}`}>
             <Icon name={item.kind} />
             {item.kind === 'function' ? 'Function' : 'Type'}
@@ -602,13 +657,15 @@ function ApiReferenceItem({ item }: { item: ApiReferenceMember }) {
           <code dangerouslySetInnerHTML={{ __html: highlightTypeScript(item.signature) }} />
         </pre>
       )}
-      {item.summary && <p>{item.summary}</p>}
+      {item.summary && <p dangerouslySetInnerHTML={renderInlineMarkdownHtml(item.summary)} />}
       {item.members && item.members.length > 0 && (
         <div class='api-member-list'>
           {item.members.map((member) => (
             <div class='api-member'>
               <code>{member.signature ?? member.name}</code>
-              {member.summary && <span>{member.summary}</span>}
+              {member.summary && (
+                <span dangerouslySetInnerHTML={renderInlineMarkdownHtml(member.summary)} />
+              )}
             </div>
           ))}
         </div>
