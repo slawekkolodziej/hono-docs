@@ -1,4 +1,4 @@
 // src/core/index.ts
-export { runGenerate } from "./runGenerate";
-export { generateOpenApi } from "./generateOpenApi";
-export { generateTypes } from "./generateTypes";
+export { generateOpenAPI, runGenerate } from './runGenerate'
+export { generateOpenApi } from './generateOpenApi'
+export { generateTypes } from './generateTypes'

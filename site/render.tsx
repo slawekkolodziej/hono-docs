@@ -1,4 +1,6 @@
 import { Example, openApiPath, scalarPath, swaggerPath } from './examples'
+import { getApiReference } from './api-reference'
+import type { ApiReferenceMember, ApiReferenceSection } from './api-reference'
 import type { Child } from 'hono/jsx'
 
 function escapeHtml(value: string): string {
@@ -14,7 +16,7 @@ function highlightTypeScript(value: string): string {
     .split('\n')
     .map((line) =>
       line.replace(
-        /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\/\/.*|\b(?:async|const|default|export|from|import|new|return|type)\b|\b\d+\b)/g,
+        /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\/\/.*|\b(?:any|async|boolean|const|default|export|from|import|new|number|Promise|return|string|type|void)\b|\b\d+\b)/g,
         (token) => {
           const escaped = escapeHtml(token)
 
@@ -165,7 +167,7 @@ function PageNav({ examples }: { examples: Example[] }) {
   )
 }
 
-function Icon({ name }: { name: 'swagger' | 'scalar' | 'json' | 'api' }) {
+function Icon({ name }: { name: 'swagger' | 'scalar' | 'json' | 'api' | 'function' | 'type' }) {
   return (
     <svg
       class='icon'
@@ -199,6 +201,21 @@ function Icon({ name }: { name: 'swagger' | 'scalar' | 'json' | 'api' }) {
         <>
           <path d='M6 8h12M6 12h12M6 16h7' />
           <path d='M4 4h16v16H4z' />
+        </>
+      )}
+      {name === 'function' && (
+        <>
+          <path d='M8 19c2.2-4.4 2.8-10.6 4-14' />
+          <path d='M6 10h8' />
+          <path d='M14 15c.8-1 1.7-1 2.5 0l1 1.2c.8 1 1.7 1 2.5-.2' />
+        </>
+      )}
+      {name === 'type' && (
+        <>
+          <path d='M4 6h16' />
+          <path d='M8 6v12' />
+          <path d='M14 18h6' />
+          <path d='M17 10v8' />
         </>
       )}
     </svg>
@@ -279,19 +296,6 @@ function ExampleRows({
         </article>
       ))}
     </>
-  )
-}
-
-function ApiTable({ rows }: { rows: [Child, Child][] }) {
-  return (
-    <div class='api-table'>
-      {rows.map(([label, description]) => (
-        <>
-          <div>{label}</div>
-          <div>{description}</div>
-        </>
-      ))}
-    </div>
   )
 }
 
@@ -456,120 +460,28 @@ app.get(
   )
 }
 
-export function renderApiDocs() {
+export async function renderApiDocs() {
+  const sections = await getApiReference()
+
   return (
     <Layout title='hono-docs API - hono-docs'>
-      <main class='page single'>
+      <main class='page'>
+        <aside class='sidebar' aria-label='API navigation'>
+          <ApiPageNav sections={sections} />
+        </aside>
         <div class='content'>
-          <section class='hero compact'>
+          <section class='hero compact' id='api-overview'>
             <p class='eyebrow'>API reference</p>
             <h1>hono-docs public API.</h1>
             <p class='lead'>
-              The small surface area needed to generate OpenAPI from Hono route types and serve it
-              through existing documentation middleware.
+              Generated from TSDoc comments on the exported TypeScript surface. OpenAPI generation
+              remains focused on your Hono routes; this page documents the library API you call.
             </p>
           </section>
 
-          <section class='section'>
-            <h2>Runtime middleware</h2>
-            <ApiTable
-              rows={[
-                [
-                  <code>serveOpenAPI(options?)</code>,
-                  <>
-                    Hono handler that serves an OpenAPI JSON document and can generate it when
-                    missing.
-                  </>,
-                ],
-                [
-                  <code>options.config</code>,
-                  <>
-                    Path to a config file, or an imported <code>HonoDocsConfig</code> object.
-                  </>,
-                ],
-                [
-                  <code>options.rootPath</code>,
-                  <>
-                    Project root used to resolve paths when <code>config</code> is an imported
-                    object.
-                  </>,
-                ],
-                [
-                  <code>options.outputPath</code>,
-                  <>Explicit JSON file path to serve instead of reading it from config.</>,
-                ],
-                [
-                  <code>options.regenerate</code>,
-                  <>
-                    Controls whether a missing JSON file should be generated. Defaults to{' '}
-                    <code>true</code>.
-                  </>,
-                ],
-              ]}
-            />
-          </section>
+          <ApiReference sections={sections} />
 
-          <section class='section'>
-            <h2>Config helpers</h2>
-            <ApiTable
-              rows={[
-                [
-                  <code>defineConfig(config)</code>,
-                  <>
-                    No-op helper for typed <code>hono-docs.config.ts</code> files.
-                  </>,
-                ],
-                [
-                  <code>HonoDocsConfig.tsConfigPath</code>,
-                  <>Path to the TypeScript config used by ts-morph.</>,
-                ],
-                [
-                  <code>HonoDocsConfig.appTypePath</code>,
-                  <>
-                    Module exporting <code>AppType = typeof app</code>.
-                  </>,
-                ],
-                [
-                  <code>HonoDocsConfig.outputs.openApiJson</code>,
-                  <>Final OpenAPI JSON output path.</>,
-                ],
-                [
-                  <code>HonoDocsConfig.openApi</code>,
-                  <>Static OpenAPI metadata such as title, version, servers, and security.</>,
-                ],
-                [
-                  <code>HonoDocsConfig.api</code>,
-                  <>Optional manual metadata overrides for inferred routes.</>,
-                ],
-                [
-                  <code>HonoDocsConfig.excludePaths</code>,
-                  <>
-                    Paths excluded from generated documentation, usually docs UI and JSON endpoints.
-                  </>,
-                ],
-              ]}
-            />
-          </section>
-
-          <section class='section'>
-            <h2>Route documentation</h2>
-            <ApiTable
-              rows={[
-                [
-                  <code>doc(metadata)</code>,
-                  <>
-                    Middleware for inline summaries, descriptions, tags, and deprecation metadata.
-                  </>,
-                ],
-                [<code>metadata.summary</code>, <>Operation summary.</>],
-                [<code>metadata.description</code>, <>Markdown-capable operation description.</>],
-                [<code>metadata.tags</code>, <>OpenAPI operation tags.</>],
-                [<code>metadata.deprecated</code>, <>Marks an operation as deprecated.</>],
-              ]}
-            />
-          </section>
-
-          <section class='section'>
+          <section class='section' id='cli'>
             <h2>CLI</h2>
             <CodeBlock>{`
 pnpm hono-docs generate --config hono-docs.config.ts
@@ -580,4 +492,134 @@ pnpm hono-docs generate --config hono-docs.config.ts --rebuild
       </main>
     </Layout>
   )
+}
+
+function ApiPageNav({ sections }: { sections: ApiReferenceSection[] }) {
+  const groups = [
+    ...sections.map((section) => {
+      const sectionSlug = slugify(section.title)
+      const links = [[section.title, `#${sectionSlug}`]]
+
+      if (section.functions.length > 0) {
+        links.push(['Functions', `#functions-${sectionSlug}`])
+      }
+
+      if (section.types.length > 0) {
+        links.push(['Types', `#types-${sectionSlug}`])
+      }
+
+      return {
+        label: section.title,
+        links,
+      }
+    }),
+    {
+      label: 'Tools',
+      links: [['CLI', '#cli']],
+    },
+  ]
+
+  return (
+    <>
+      {groups.map((group) => (
+        <div class='nav-group'>
+          <div class='nav-group-label'>{group.label}</div>
+          {group.links.map(([label, href]) => (
+            <a href={href}>{label}</a>
+          ))}
+        </div>
+      ))}
+    </>
+  )
+}
+
+function ApiReference({ sections }: { sections: ApiReferenceSection[] }) {
+  return (
+    <>
+      {sections.map((section) => {
+        const sectionSlug = slugify(section.title)
+
+        return (
+          <section class='section api-reference' id={sectionSlug}>
+            <div class='section-intro'>
+              <h2>{section.title}</h2>
+              <p>{section.description}</p>
+            </div>
+            {section.functions.length > 0 && (
+              <ApiReferenceGroup
+                id={`functions-${sectionSlug}`}
+                title='Functions'
+                items={section.functions}
+              />
+            )}
+            {section.types.length > 0 && (
+              <ApiReferenceGroup id={`types-${sectionSlug}`} title='Types' items={section.types} />
+            )}
+          </section>
+        )
+      })}
+    </>
+  )
+}
+
+function ApiReferenceGroup({
+  id,
+  title,
+  items,
+}: {
+  id: string
+  title: string
+  items: ApiReferenceMember[]
+}) {
+  return (
+    <div class='api-reference-group' id={id}>
+      <div class='api-reference-group-heading'>
+        <h3>{title}</h3>
+      </div>
+      <div class='api-reference-list'>
+        {items.map((item) => (
+          <ApiReferenceItem item={item} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ApiReferenceItem({ item }: { item: ApiReferenceMember }) {
+  return (
+    <article class={`api-reference-item ${item.kind}`}>
+      <div class='api-reference-heading'>
+        <div>
+          <h3>{item.name}</h3>
+          <span class={`api-kind ${item.kind}`}>
+            <Icon name={item.kind} />
+            {item.kind === 'function' ? 'Function' : 'Type'}
+          </span>
+        </div>
+      </div>
+      {item.signature && (
+        <pre class='signature'>
+          <code dangerouslySetInnerHTML={{ __html: highlightTypeScript(item.signature) }} />
+        </pre>
+      )}
+      {item.summary && <p>{item.summary}</p>}
+      {item.members && item.members.length > 0 && (
+        <div class='api-member-list'>
+          {item.members.map((member) => (
+            <div class='api-member'>
+              <code>{member.signature ?? member.name}</code>
+              {member.summary && <span>{member.summary}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </article>
+  )
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 }

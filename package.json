@@ -50,6 +50,8 @@
     "lint.eslint": "eslint . --ext .ts,.tsx,.js",
     "format": "oxfmt --check",
     "format.fix": "oxfmt",
+    "docs:api": "typedoc --options typedoc.json --json .site/api-reference.json",
+    "api:check": "api-extractor run --local",
     "test": "vitest run",
     "test.unit": "vitest run tests/unit",
     "test.integration": "vitest run tests/integration",
@@ -84,6 +86,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@microsoft/api-extractor": "^7.58.9",
     "@scalar/hono-api-reference": "^0.10.7",
     "@types/debug": "^4.1.12",
     "@types/node": "^24.0.3",
@@ -96,6 +99,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-format": "^1.5.0",
     "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-tsdoc": "^0.5.2",
     "globals": "^16.5.0",
     "hono": "4.12.26",
     "hono-docs": "link:.",
@@ -106,6 +110,7 @@
     "oxlint-tsgolint": "^0.23.0",
     "standard-version": "^9.5.0",
     "tsdown": "^0.21.8",
+    "typedoc": "^0.28.19",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.58.2",
     "vitest": "^3.2.4"

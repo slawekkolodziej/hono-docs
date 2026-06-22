@@ -1,19 +1,37 @@
 import { createMiddleware } from 'hono/factory'
 
 export interface DocConfig {
+  /**
+   * Short operation title shown in generated OpenAPI documentation.
+   */
   summary?: string
-  description?: string  
+
+  /**
+   * Longer Markdown-capable operation description.
+   */
+  description?: string
+
+  /**
+   * OpenAPI tags used to group the operation in documentation UIs.
+   */
   tags?: string[]
+
+  /**
+   * Marks the OpenAPI operation as deprecated without changing runtime behavior.
+   */
   deprecated?: boolean
 }
 
 // Symbol to mark documentation middleware for type extraction
-const DOC_SYMBOL = Symbol('hono-docs');
+const DOC_SYMBOL = Symbol('hono-docs')
 
 /**
  * Documentation middleware that adds metadata to routes without affecting runtime behavior.
  * This metadata can be extracted during type analysis for OpenAPI generation.
- * 
+ *
+ * @param config - Metadata to merge into the generated OpenAPI operation.
+ * @returns A Hono middleware handler that is a no-op at runtime.
+ *
  * @example
  * ```typescript
  * app.get(
@@ -31,14 +49,14 @@ export const doc = (config: DocConfig) => {
   const middleware = createMiddleware(async (_c, next) => {
     // This middleware is a no-op at runtime - it exists purely for type-level documentation
     await next()
-  });
-  
+  })
+
   // Attach the config to the middleware function for type extraction
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (middleware as any)[DOC_SYMBOL] = config;
-  
-  return middleware;
+  ;(middleware as any)[DOC_SYMBOL] = config
+
+  return middleware
 }
 
 // Export the symbol so it can be used in type extraction
-export { DOC_SYMBOL };
+export { DOC_SYMBOL }

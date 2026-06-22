@@ -34,7 +34,7 @@ app.get('/', async (c) => {
   return c.html(renderHome(examples, await readExampleSources(examples)))
 })
 
-app.get('/docs/api', (c) => c.html(renderApiDocs()))
+app.get('/docs/api', async (c) => c.html(await renderApiDocs()))
 
 app.get('/api/examples', async (c) => c.json({ examples: await loadExamples() }))
 

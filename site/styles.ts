@@ -443,6 +443,109 @@ p code {
   color: var(--text);
 }
 
+.api-reference-list {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.api-reference-group {
+  padding-top: 26px;
+}
+
+.api-reference-group-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.api-reference-group-heading h3 {
+  font-size: 14px;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.api-reference-item {
+  display: grid;
+  gap: 14px;
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+}
+
+.api-reference-item:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.api-reference-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.api-reference-heading h3 {
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.api-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin-top: 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: var(--surface);
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.api-kind.function {
+  color: #0f766e;
+  border-color: #99f6e4;
+  background: #f0fdfa;
+}
+
+.api-kind.type {
+  color: #7c2d12;
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.signature {
+  border-color: var(--line);
+  background: #171717;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.api-member-list {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.api-member {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.api-member code {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
 .plain-list {
   margin: 0;
   padding-left: 18px;
@@ -495,6 +598,7 @@ footer {
   .two-up,
   .code-grid,
   .api-table,
+  .api-member,
   .example-row,
   .section-heading {
     grid-template-columns: 1fr;

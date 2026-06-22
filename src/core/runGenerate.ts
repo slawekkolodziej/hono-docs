@@ -26,6 +26,16 @@ function normalizePathToOpenApi(path: string): string {
   return path.replace(/:([^/]+)/g, '{$1}')
 }
 
+/**
+ * Generates TypeScript route snapshots and a merged OpenAPI document from an imported config.
+ *
+ * Use this when you already have a typed `HonoDocsConfig` object in memory, for example inside
+ * runtime middleware that should avoid importing a TypeScript config file by path.
+ *
+ * @param config - Fully resolved hono-docs configuration.
+ * @param rootPath - Project root used to resolve config-relative paths.
+ * @param options - Generation options.
+ */
 export async function runGenerateFromConfig(
   config: HonoDocsConfig,
   rootPath = process.cwd(),
@@ -310,9 +320,30 @@ export async function runGenerateFromConfig(
   console.log(`✅ OpenAPI spec written to: ${outputPath}`)
 }
 
-export async function runGenerate(configPath: string, options: { rebuild?: boolean } = {}) {
+/**
+ * Generates an OpenAPI document from a hono-docs config file path.
+ *
+ * The generator emits temporary TypeScript route snapshots, infers route input and response
+ * schemas, then writes the final OpenAPI JSON file configured by `outputs.openApiJson`.
+ *
+ * @param configPath - Path to a config file exporting a `HonoDocsConfig`.
+ * @param options - Generation options.
+ */
+export async function generateOpenAPI(configPath: string, options: { rebuild?: boolean } = {}) {
   const fullConfigPath = resolve(configPath)
   const config = await loadConfig(fullConfigPath)
 
   await runGenerateFromConfig(config, path.dirname(fullConfigPath), options)
+}
+
+/**
+ * Runs the hono-docs generator from a config file path.
+ *
+ * @deprecated Use {@link generateOpenAPI} instead.
+ *
+ * @param configPath - Path to a config file exporting a `HonoDocsConfig`.
+ * @param options - Generation options.
+ */
+export async function runGenerate(configPath: string, options: { rebuild?: boolean } = {}) {
+  await generateOpenAPI(configPath, options)
 }

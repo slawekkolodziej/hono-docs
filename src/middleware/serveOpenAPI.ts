@@ -8,8 +8,10 @@ import type { HonoDocsConfig } from '../types'
 
 export interface ServeOpenAPIConfig {
   /**
-   * Path to the hono-docs config file, or an imported hono-docs config object.
-   * If not provided, will auto-detect from common locations.
+   * Path to a hono-docs config file, or an imported config object.
+   *
+   * Auto-detect hono-docs config file behavior uses `hono-docs.config.js`,
+   * `hono-docs.config.mjs`, or `hono-docs.config.ts` from the current working directory.
    */
   config?: string | HonoDocsConfig
 
@@ -59,8 +61,19 @@ function isConfigObject(config: ServeOpenAPIConfig['config']): config is HonoDoc
 }
 
 /**
- * Middleware to serve OpenAPI JSON spec.
- * Automatically generates the spec if it doesn't exist.
+ * JSON response shape returned by `serveOpenAPI`.
+ */
+export type ServeOpenAPIResponse = TypedResponse<unknown, 200 | 404 | 500, 'json'>
+
+/**
+ * Creates a Hono handler that serves the generated OpenAPI JSON document.
+ *
+ * The handler first serves an existing JSON file. If the file is missing and
+ * `regenerate` is enabled, it loads the hono-docs config, runs generation, then
+ * returns the fresh document.
+ *
+ * @param options - Runtime serving and regeneration options.
+ * @returns A Hono handler suitable for routes such as `/openapi.json`.
  *
  * @example
  * ```typescript
@@ -68,8 +81,6 @@ function isConfigObject(config: ServeOpenAPIConfig['config']): config is HonoDoc
  *   .get('/openapi.json', serveOpenAPI())
  * ```
  */
-type ServeOpenAPIResponse = TypedResponse<unknown, 200 | 404 | 500, 'json'>
-
 export const serveOpenAPI = <
   E extends Env = Env,
   P extends string = string,
