@@ -3,6 +3,10 @@
 exports[`grouped-simple > matches snapshot 1`] = `
 {
   "info": {
+    "description": "Two route groups are mounted into one Hono app.
+
+This fixture shows how generated OpenAPI paths preserve docs and users routes while keeping
+inline \`doc()\` metadata next to selected handlers.",
     "title": "Simple Grouped App Test API",
     "version": "1.0.0",
   },
@@ -10,6 +14,10 @@ exports[`grouped-simple > matches snapshot 1`] = `
   "paths": {
     "/docs": {
       "get": {
+        "description": "Lists documentation records from the **docs route group**.
+
+The route also runs \`occasionallyFails\`, so generated docs include the successful shape
+while the app still demonstrates middleware composition.",
         "responses": {
           "200": {
             "content": {
@@ -41,14 +49,19 @@ exports[`grouped-simple > matches snapshot 1`] = `
             "description": "Status 200",
           },
         },
-        "summary": "Auto-generated GET /docs",
+        "summary": "List docs",
         "tags": [
-          "Simple Grouped App",
+          "Docs",
+          "Grouped routes",
         ],
       },
     },
     "/docs/{id}": {
       "get": {
+        "description": "Returns one grouped docs route by \`id\`.
+
+- \`200\` for known fixture ids
+- \`404\` for unknown docs",
         "parameters": [
           {
             "in": "path",
@@ -105,14 +118,18 @@ exports[`grouped-simple > matches snapshot 1`] = `
             "description": "Status 404",
           },
         },
-        "summary": "Auto-generated GET /docs/{id}",
+        "summary": "Get doc",
         "tags": [
-          "Simple Grouped App",
+          "Docs",
+          "Grouped routes",
         ],
       },
     },
     "/users": {
       "get": {
+        "description": "Lists users from the second route group mounted in the same Hono app.
+
+This makes it easier to compare sibling route groups in the generated OpenAPI output.",
         "responses": {
           "200": {
             "content": {
@@ -156,12 +173,19 @@ exports[`grouped-simple > matches snapshot 1`] = `
             "description": "Success response",
           },
         },
-        "summary": "Auto-generated GET /users",
+        "summary": "List grouped users",
         "tags": [
-          "Simple Grouped App",
+          "Users",
+          "Grouped routes",
         ],
       },
       "post": {
+        "description": "Shows \`doc()\` middleware before a **Zod** validator in a grouped route example.
+
+Required fields:
+
+- \`name\`
+- \`email\`",
         "requestBody": {
           "content": {
             "application/json": {
@@ -283,9 +307,11 @@ exports[`grouped-simple > matches snapshot 1`] = `
             "description": "Status 400",
           },
         },
-        "summary": "Auto-generated POST /users",
+        "summary": "Create grouped user",
         "tags": [
-          "Simple Grouped App",
+          "Users",
+          "Validation",
+          "Grouped routes",
         ],
       },
     },

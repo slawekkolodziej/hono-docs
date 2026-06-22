@@ -3,6 +3,13 @@
 exports[`grouped-complex > matches snapshot 1`] = `
 {
   "info": {
+    "description": "Multiple unrelated route groups are mounted at different prefixes:
+
+- health checks
+- API v1 resources
+- auth endpoints
+
+This catches mixed composition cases that are less tidy than one shared route tree.",
     "title": "Complex Grouped App Test API",
     "version": "1.0.0",
   },

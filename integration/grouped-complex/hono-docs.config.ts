@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import dedent from 'dedent'
 import { defineConfig } from 'hono-docs'
 
 export default defineConfig({
@@ -8,6 +9,15 @@ export default defineConfig({
     info: {
       title: 'Complex Grouped App Test API',
       version: '1.0.0',
+      description: dedent`
+        Multiple unrelated route groups are mounted at different prefixes:
+
+        - health checks
+        - API v1 resources
+        - auth endpoints
+
+        This catches mixed composition cases that are less tidy than one shared route tree.
+      `,
     },
   },
   outputs: {

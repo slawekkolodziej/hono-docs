@@ -1,21 +1,21 @@
 // Tests for doc() middleware extraction
-import { describe, test, expect, beforeEach } from "vitest";
-import { Project } from "ts-morph";
+import { describe, test, expect, beforeEach } from 'vitest'
+import { Project } from 'ts-morph'
 import {
   extractDocumentationFromMiddleware,
   createDocLookup,
-} from "../../../src/utils/middleware-docs";
+} from '../../../src/utils/middleware-docs'
 
-describe("doc() middleware extraction", () => {
-  let project: Project;
+describe('doc() middleware extraction', () => {
+  let project: Project
 
   beforeEach(() => {
     project = new Project({
       useInMemoryFileSystem: true,
-    });
-  });
+    })
+  })
 
-  test("extracts basic doc() middleware configuration", () => {
+  test('extracts basic doc() middleware configuration', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -30,24 +30,24 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({ status: "ok" })
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(1);
+    expect(documentation).toHaveLength(1)
     expect(documentation[0]).toEqual({
-      method: "get",
-      route: "/health",
+      method: 'get',
+      route: '/health',
       docConfig: {
-        summary: "Health check",
-        description: "Returns system status",
-        tags: ["Health"],
+        summary: 'Health check',
+        description: 'Returns system status',
+        tags: ['Health'],
       },
-    });
-  });
+    })
+  })
 
-  test("extracts multiple routes with doc() middleware", () => {
+  test('extracts multiple routes with doc() middleware', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -78,66 +78,66 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({ message: "deprecated" })
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(3);
+    expect(documentation).toHaveLength(3)
 
     // Sort by method and route for predictable testing
     const sortedDocs = documentation.sort((a, b) =>
       `${a.method}:${a.route}`.localeCompare(`${b.method}:${b.route}`)
-    );
+    )
 
     // Test GET /legacy
     expect(sortedDocs[0]).toEqual({
-      method: "get",
-      route: "/legacy",
+      method: 'get',
+      route: '/legacy',
       docConfig: {
-        summary: "Legacy endpoint",
+        summary: 'Legacy endpoint',
         deprecated: true,
       },
-    });
+    })
 
     // Test GET /users
     expect(sortedDocs[1]).toEqual({
-      method: "get",
-      route: "/users",
+      method: 'get',
+      route: '/users',
       docConfig: {
-        summary: "List users",
-        tags: ["Users"],
+        summary: 'List users',
+        tags: ['Users'],
       },
-    });
+    })
 
     // Test POST /users
     expect(sortedDocs[2]).toEqual({
-      method: "post",
-      route: "/users",
+      method: 'post',
+      route: '/users',
       docConfig: {
-        summary: "Create user",
-        description: "Creates a new user account",
-        tags: ["Users", "Admin"],
+        summary: 'Create user',
+        description: 'Creates a new user account',
+        tags: ['Users', 'Admin'],
       },
-    });
-  });
+    })
+  })
 
-  test("handles routes without doc() middleware", () => {
+  test('handles routes without doc() middleware', () => {
     const sourceCode = `
       import { Hono } from "hono";
 
       const app = new Hono()
         .get("/health", (c) => c.json({ status: "ok" }))
         .post("/users", (c) => c.json({ created: true }));
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(0);
-  });
+    expect(documentation).toHaveLength(0)
+  })
 
-  test("handles mixed routes (some with doc, some without)", () => {
+  test('handles mixed routes (some with doc, some without)', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -150,22 +150,22 @@ describe("doc() middleware extraction", () => {
           (c) => c.json({})
         )
         .post("/undocumented", (c) => c.json({}));
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(1);
+    expect(documentation).toHaveLength(1)
     expect(documentation[0]).toEqual({
-      method: "get",
-      route: "/documented",
+      method: 'get',
+      route: '/documented',
       docConfig: {
-        summary: "Documented route",
+        summary: 'Documented route',
       },
-    });
-  });
+    })
+  })
 
-  test("handles complex tag arrays", () => {
+  test('handles complex tag arrays', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -179,21 +179,21 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(1);
+    expect(documentation).toHaveLength(1)
     expect(documentation[0].docConfig.tags).toEqual([
-      "Tag1",
-      "Tag2",
-      "Long Tag Name",
-      "Special-Chars_123",
-    ]);
-  });
+      'Tag1',
+      'Tag2',
+      'Long Tag Name',
+      'Special-Chars_123',
+    ])
+  })
 
-  test("handles different HTTP methods", () => {
+  test('handles different HTTP methods', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -204,34 +204,26 @@ describe("doc() middleware extraction", () => {
         .put("/put", doc({ summary: "PUT route" }), (c) => c.json({}))
         .patch("/patch", doc({ summary: "PATCH route" }), (c) => c.json({}))
         .delete("/delete", doc({ summary: "DELETE route" }), (c) => c.json({}));
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(5);
+    expect(documentation).toHaveLength(5)
 
     // Sort for predictable testing
-    const sortedDocs = documentation.sort((a, b) =>
-      a.method.localeCompare(b.method)
-    );
-    expect(sortedDocs.map((d) => d.method)).toEqual([
-      "delete",
-      "get",
-      "patch",
-      "post",
-      "put",
-    ]);
+    const sortedDocs = documentation.sort((a, b) => a.method.localeCompare(b.method))
+    expect(sortedDocs.map((d) => d.method)).toEqual(['delete', 'get', 'patch', 'post', 'put'])
     expect(sortedDocs.map((d) => d.docConfig.summary)).toEqual([
-      "DELETE route",
-      "GET route",
-      "PATCH route",
-      "POST route",
-      "PUT route",
-    ]);
-  });
+      'DELETE route',
+      'GET route',
+      'PATCH route',
+      'POST route',
+      'PUT route',
+    ])
+  })
 
-  test("handles parameter routes", () => {
+  test('handles parameter routes', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -247,22 +239,20 @@ describe("doc() middleware extraction", () => {
           doc({ summary: "Get comment" }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(2);
+    expect(documentation).toHaveLength(2)
 
     // Sort by route for predictable testing
-    const sortedDocs = documentation.sort((a, b) =>
-      a.route.localeCompare(b.route)
-    );
-    expect(sortedDocs[0].route).toBe("/posts/:postId/comments/:commentId");
-    expect(sortedDocs[1].route).toBe("/users/:id");
-  });
+    const sortedDocs = documentation.sort((a, b) => a.route.localeCompare(b.route))
+    expect(sortedDocs[0].route).toBe('/posts/:postId/comments/:commentId')
+    expect(sortedDocs[1].route).toBe('/users/:id')
+  })
 
-  test("handles doc() middleware with additional middleware", () => {
+  test('handles doc() middleware with additional middleware', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -275,49 +265,49 @@ describe("doc() middleware extraction", () => {
           rateLimitMiddleware,
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(1);
+    expect(documentation).toHaveLength(1)
     expect(documentation[0]).toEqual({
-      method: "get",
-      route: "/protected",
+      method: 'get',
+      route: '/protected',
       docConfig: {
-        summary: "Protected route",
+        summary: 'Protected route',
       },
-    });
-  });
+    })
+  })
 
-  test("creates lookup map correctly", () => {
+  test('creates lookup map correctly', () => {
     const documentation = [
       {
-        method: "get",
-        route: "/users",
-        docConfig: { summary: "List users" },
+        method: 'get',
+        route: '/users',
+        docConfig: { summary: 'List users' },
       },
       {
-        method: "post",
-        route: "/users",
-        docConfig: { summary: "Create user" },
+        method: 'post',
+        route: '/users',
+        docConfig: { summary: 'Create user' },
       },
       {
-        method: "get",
-        route: "/users/:id",
-        docConfig: { summary: "Get user" },
+        method: 'get',
+        route: '/users/:id',
+        docConfig: { summary: 'Get user' },
       },
-    ];
+    ]
 
-    const lookup = createDocLookup(documentation);
+    const lookup = createDocLookup(documentation)
 
-    expect(lookup.get("get:/users")).toEqual({ summary: "List users" });
-    expect(lookup.get("post:/users")).toEqual({ summary: "Create user" });
-    expect(lookup.get("get:/users/:id")).toEqual({ summary: "Get user" });
-    expect(lookup.get("delete:/users")).toBeUndefined();
-  });
+    expect(lookup.get('get:/users')).toEqual({ summary: 'List users' })
+    expect(lookup.get('post:/users')).toEqual({ summary: 'Create user' })
+    expect(lookup.get('get:/users/:id')).toEqual({ summary: 'Get user' })
+    expect(lookup.get('delete:/users')).toBeUndefined()
+  })
 
-  test("handles empty or malformed configurations gracefully", () => {
+  test('handles empty or malformed configurations gracefully', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -333,16 +323,16 @@ describe("doc() middleware extraction", () => {
           doc({ summary: "" }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
     // Should not extract configurations without useful information
-    expect(documentation).toHaveLength(0);
-  });
+    expect(documentation).toHaveLength(0)
+  })
 
-  test("handles boolean values correctly", () => {
+  test('handles boolean values correctly', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -364,22 +354,20 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(2);
+    expect(documentation).toHaveLength(2)
 
     // Sort by route for predictable testing
-    const sortedDocs = documentation.sort((a, b) =>
-      a.route.localeCompare(b.route)
-    );
-    expect(sortedDocs[0].docConfig.deprecated).toBe(false); // /deprecated-false
-    expect(sortedDocs[1].docConfig.deprecated).toBe(true); // /deprecated-true
-  });
+    const sortedDocs = documentation.sort((a, b) => a.route.localeCompare(b.route))
+    expect(sortedDocs[0].docConfig.deprecated).toBe(false) // /deprecated-false
+    expect(sortedDocs[1].docConfig.deprecated).toBe(true) // /deprecated-true
+  })
 
-  test("handles syntax errors gracefully", () => {
+  test('handles syntax errors gracefully', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -391,18 +379,18 @@ describe("doc() middleware extraction", () => {
           doc({ summary: "Missing comma" })
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
 
     // Should not throw an error, just return empty results
     expect(() => {
-      const documentation = extractDocumentationFromMiddleware(sourceFile);
-      expect(documentation).toHaveLength(0);
-    }).not.toThrow();
-  });
+      const documentation = extractDocumentationFromMiddleware(sourceFile)
+      expect(documentation).toHaveLength(0)
+    }).not.toThrow()
+  })
 
-  test("handles template literal descriptions with dedent preprocessing", () => {
+  test('handles template literal descriptions with dedent preprocessing', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -423,26 +411,26 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(1);
-    expect(documentation[0].docConfig.summary).toBe("Template literal summary");
+    expect(documentation).toHaveLength(1)
+    expect(documentation[0].docConfig.summary).toBe('Template literal summary')
     expect(documentation[0].docConfig.description).toBe(
       [
-        "This is a multiline description",
-        "that should have its leading whitespace",
-        "automatically removed by dedent preprocessing.",
-        "",
-        "It can contain multiple paragraphs",
-        "and preserve relative indentation.",
-      ].join("\n")
-    );
-  });
+        'This is a multiline description',
+        'that should have its leading whitespace',
+        'automatically removed by dedent preprocessing.',
+        '',
+        'It can contain multiple paragraphs',
+        'and preserve relative indentation.',
+      ].join('\n')
+    )
+  })
 
-  test("handles template literal summaries with dedent preprocessing", () => {
+  test('handles template literal summaries with dedent preprocessing', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -459,21 +447,55 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(1);
+    expect(documentation).toHaveLength(1)
     expect(documentation[0].docConfig.summary).toBe(
-      ["A multiline summary", "with dedent preprocessing"].join("\n")
-    );
-    expect(documentation[0].docConfig.description).toBe(
-      "Single line description"
-    );
-  });
+      ['A multiline summary', 'with dedent preprocessing'].join('\n')
+    )
+    expect(documentation[0].docConfig.description).toBe('Single line description')
+  })
 
-  test("handles descriptions with markdown content", () => {
+  test('handles tagged template descriptions with dedent preprocessing', () => {
+    const sourceCode = `
+      import dedent from "dedent";
+      import { Hono } from "hono";
+      import { doc } from "hono-docs";
+
+      const app = new Hono()
+        .get(
+          "/tagged-template-desc",
+          doc({
+            summary: "Tagged template description",
+            description: dedent\`
+              Read this \\\`route\\\` as **markdown**.
+
+              - keeps list items
+              - removes indentation
+            \`
+          }),
+          (c) => c.json({})
+        );
+    `
+
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
+
+    expect(documentation).toHaveLength(1)
+    expect(documentation[0].docConfig.description).toBe(
+      [
+        'Read this `route` as **markdown**.',
+        '',
+        '- keeps list items',
+        '- removes indentation',
+      ].join('\n')
+    )
+  })
+
+  test('handles descriptions with markdown content', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -497,24 +519,22 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(1);
-    expect(documentation[0].docConfig.summary).toBe(
-      "Endpoint with markdown description"
-    );
-    expect(documentation[0].docConfig.description).toContain("## Overview");
-    expect(documentation[0].docConfig.description).toContain("**supports**");
-    expect(documentation[0].docConfig.description).toContain("### Features");
-    expect(documentation[0].docConfig.description).toContain("- *Italic text*");
-    expect(documentation[0].docConfig.description).toContain("[example]");
-    expect(documentation[0].docConfig.description).toContain("> **Note**:");
-  });
+    expect(documentation).toHaveLength(1)
+    expect(documentation[0].docConfig.summary).toBe('Endpoint with markdown description')
+    expect(documentation[0].docConfig.description).toContain('## Overview')
+    expect(documentation[0].docConfig.description).toContain('**supports**')
+    expect(documentation[0].docConfig.description).toContain('### Features')
+    expect(documentation[0].docConfig.description).toContain('- *Italic text*')
+    expect(documentation[0].docConfig.description).toContain('[example]')
+    expect(documentation[0].docConfig.description).toContain('> **Note**:')
+  })
 
-  test("handles complex indented content with proper dedent", () => {
+  test('handles complex indented content with proper dedent', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -536,26 +556,26 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(1);
+    expect(documentation).toHaveLength(1)
     expect(documentation[0].docConfig.description).toBe(
       [
-        "Level 1 content",
-        "  Level 2 indented content",
-        "    Level 3 deeply indented",
-        "  Back to level 2",
-        "Back to level 1",
-        "",
-        "Normal paragraph with no extra indentation."
-      ].join("\n")
-    );
-  });
+        'Level 1 content',
+        '  Level 2 indented content',
+        '    Level 3 deeply indented',
+        '  Back to level 2',
+        'Back to level 1',
+        '',
+        'Normal paragraph with no extra indentation.',
+      ].join('\n')
+    )
+  })
 
-  test("handles empty template literals correctly", () => {
+  test('handles empty template literals correctly', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -571,16 +591,16 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
     // Should not extract configurations with only empty strings
-    expect(documentation).toHaveLength(0);
-  });
+    expect(documentation).toHaveLength(0)
+  })
 
-  test("handles mixed string literals and template literals", () => {
+  test('handles mixed string literals and template literals', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -608,39 +628,37 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(2);
+    expect(documentation).toHaveLength(2)
 
-    const sortedDocs = documentation.sort((a, b) =>
-      a.method.localeCompare(b.method)
-    );
+    const sortedDocs = documentation.sort((a, b) => a.method.localeCompare(b.method))
 
     // GET /mixed-strings
     expect(sortedDocs[0]).toEqual({
-      method: "get",
-      route: "/mixed-strings",
+      method: 'get',
+      route: '/mixed-strings',
       docConfig: {
-        summary: "Regular string literal",
-        description: ["Template literal description", "with multiple lines"].join("\n"),
+        summary: 'Regular string literal',
+        description: ['Template literal description', 'with multiple lines'].join('\n'),
       },
-    });
+    })
 
     // POST /mixed-reverse
     expect(sortedDocs[1]).toEqual({
-      method: "post",
-      route: "/mixed-reverse",
+      method: 'post',
+      route: '/mixed-reverse',
       docConfig: {
-        summary: ["Template literal summary", "with multiple lines"].join("\n"),
-        description: "Regular string literal description",
+        summary: ['Template literal summary', 'with multiple lines'].join('\n'),
+        description: 'Regular string literal description',
       },
-    });
-  });
+    })
+  })
 
-  test("comprehensive coverage of summary and description features", () => {
+  test('comprehensive coverage of summary and description features', () => {
     const sourceCode = `
       import { Hono } from "hono";
       import { doc } from "hono-docs";
@@ -693,42 +711,40 @@ describe("doc() middleware extraction", () => {
           }),
           (c) => c.json({})
         );
-    `;
+    `
 
-    const sourceFile = project.createSourceFile("test.ts", sourceCode);
-    const documentation = extractDocumentationFromMiddleware(sourceFile);
+    const sourceFile = project.createSourceFile('test.ts', sourceCode)
+    const documentation = extractDocumentationFromMiddleware(sourceFile)
 
-    expect(documentation).toHaveLength(3);
+    expect(documentation).toHaveLength(3)
 
-    const lookup = createDocLookup(documentation);
+    const lookup = createDocLookup(documentation)
 
     // Test string literals
-    const stringLiterals = lookup.get("get:/string-literals");
+    const stringLiterals = lookup.get('get:/string-literals')
     expect(stringLiterals).toEqual({
-      summary: "Simple string summary",
-      description: "Simple string description",
-    });
+      summary: 'Simple string summary',
+      description: 'Simple string description',
+    })
 
     // Test template literals with dedent
-    const templateLiterals = lookup.get("post:/template-literals");
+    const templateLiterals = lookup.get('post:/template-literals')
     expect(templateLiterals?.summary).toBe(
-      ["Multi-line template summary", "with preserved formatting"].join("\n")
-    );
-    expect(templateLiterals?.description).toContain(
-      "## Comprehensive Description"
-    );
-    expect(templateLiterals?.description).toContain("**Bold text**");
-    expect(templateLiterals?.description).toContain("*Italic text*");
-    expect(templateLiterals?.description).toContain("> This is a blockquote");
-    expect(templateLiterals?.description).toContain("### Important Notes");
+      ['Multi-line template summary', 'with preserved formatting'].join('\n')
+    )
+    expect(templateLiterals?.description).toContain('## Comprehensive Description')
+    expect(templateLiterals?.description).toContain('**Bold text**')
+    expect(templateLiterals?.description).toContain('*Italic text*')
+    expect(templateLiterals?.description).toContain('> This is a blockquote')
+    expect(templateLiterals?.description).toContain('### Important Notes')
 
     // Test mixed types
-    const mixed = lookup.get("put:/mixed");
-    expect(mixed?.summary).toBe("String literal summary");
+    const mixed = lookup.get('put:/mixed')
+    expect(mixed?.summary).toBe('String literal summary')
     expect(mixed?.description).toBe(
-      ["Template literal description", "with automatic dedent processing"].join("\n")
-    );
-    expect(mixed?.tags).toEqual(["Mixed", "Testing"]);
-    expect(mixed?.deprecated).toBe(false);
-  });
-});
+      ['Template literal description', 'with automatic dedent processing'].join('\n')
+    )
+    expect(mixed?.tags).toEqual(['Mixed', 'Testing'])
+    expect(mixed?.deprecated).toBe(false)
+  })
+})

@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import dedent from 'dedent'
 import { defineConfig } from 'hono-docs'
 
 export default defineConfig({
@@ -8,7 +9,16 @@ export default defineConfig({
     info: {
       title: 'Manual Routes Test API',
       version: '1.0.0',
-      description: 'Manual route definition pattern test',
+      description: dedent`
+        A small Hono app is paired with explicit route metadata in config.
+
+        This shows how manual metadata is layered over inferred routes:
+
+        - summaries
+        - tags
+        - servers
+        - path metadata
+      `,
     },
     servers: [{ url: 'http://localhost:3000/api' }],
   },

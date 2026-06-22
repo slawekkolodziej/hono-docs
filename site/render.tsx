@@ -1,4 +1,4 @@
-import { Example, examples, openApiPath, scalarPath, swaggerPath } from './examples'
+import { Example, openApiPath, scalarPath, swaggerPath } from './examples'
 import type { Child } from 'hono/jsx'
 
 function escapeHtml(value: string): string {
@@ -45,6 +45,85 @@ function CodeBlock({ children }: { children: string }) {
   )
 }
 
+function renderInlineMarkdown(value: string): string {
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+}
+
+function renderMarkdown(value: string): string {
+  const lines = value.trim().split('\n')
+  const html: string[] = []
+  const paragraph: string[] = []
+  let listOpen = false
+
+  const flushParagraph = () => {
+    if (!paragraph.length) {
+      return
+    }
+
+    html.push(`<p>${renderInlineMarkdown(paragraph.join(' '))}</p>`)
+    paragraph.length = 0
+  }
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+
+    if (!trimmed) {
+      flushParagraph()
+
+      if (listOpen) {
+        html.push('</ul>')
+        listOpen = false
+      }
+      continue
+    }
+
+    const listItem = trimmed.match(/^-\s+(.+)$/)
+
+    if (listItem) {
+      flushParagraph()
+
+      if (!listOpen) {
+        html.push('<ul>')
+        listOpen = true
+      }
+
+      html.push(`<li>${renderInlineMarkdown(listItem[1])}</li>`)
+      continue
+    }
+
+    if (listOpen) {
+      html.push('</ul>')
+      listOpen = false
+    }
+
+    const heading = trimmed.match(/^(#{2,3})\s+(.+)$/)
+
+    if (heading) {
+      flushParagraph()
+
+      const level = heading[1].length + 1
+      html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`)
+      continue
+    }
+
+    paragraph.push(trimmed)
+  }
+
+  flushParagraph()
+
+  if (listOpen) {
+    html.push('</ul>')
+  }
+
+  return html.join('')
+}
+
+function Markdown({ children }: { children: string }) {
+  return <div class='markdown' dangerouslySetInnerHTML={{ __html: renderMarkdown(children) }} />
+}
+
 function PageNav() {
   const links = [
     ['Install', '#install'],
@@ -66,37 +145,37 @@ function PageNav() {
 function Icon({ name }: { name: 'swagger' | 'scalar' | 'json' | 'api' }) {
   return (
     <svg
-      class="icon"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      class='icon'
+      viewBox='0 0 24 24'
+      aria-hidden='true'
+      fill='none'
+      stroke='currentColor'
+      stroke-width='1.8'
+      stroke-linecap='round'
+      stroke-linejoin='round'
     >
       {name === 'swagger' && (
         <>
-          <path d="M5 5h14v14H5z" />
-          <path d="M9 9h6M9 13h6M9 17h3" />
+          <path d='M5 5h14v14H5z' />
+          <path d='M9 9h6M9 13h6M9 17h3' />
         </>
       )}
       {name === 'scalar' && (
         <>
-          <path d="M4 7h16M4 12h16M4 17h16" />
-          <path d="M8 4v16M16 4v16" />
+          <path d='M4 7h16M4 12h16M4 17h16' />
+          <path d='M8 4v16M16 4v16' />
         </>
       )}
       {name === 'json' && (
         <>
-          <path d="M8 8 5 12l3 4M16 8l3 4-3 4" />
-          <path d="m14 6-4 12" />
+          <path d='M8 8 5 12l3 4M16 8l3 4-3 4' />
+          <path d='m14 6-4 12' />
         </>
       )}
       {name === 'api' && (
         <>
-          <path d="M6 8h12M6 12h12M6 16h7" />
-          <path d="M4 4h16v16H4z" />
+          <path d='M6 8h12M6 12h12M6 16h7' />
+          <path d='M4 4h16v16H4z' />
         </>
       )}
     </svg>
@@ -105,33 +184,33 @@ function Icon({ name }: { name: 'swagger' | 'scalar' | 'json' | 'api' }) {
 
 function Layout({ title, children }: { title: string; children: Child }) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset='utf-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1' />
         <title>{title}</title>
-        <meta name="description" content="Generate OpenAPI from Hono route types." />
+        <meta name='description' content='Generate OpenAPI from Hono route types.' />
         <link
-          rel="icon"
+          rel='icon'
           href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f172a'/%3E%3Cpath d='M9 10h14M9 16h10M9 22h14' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E"
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+        <link rel='preconnect' href='https://fonts.googleapis.com' />
+        <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin='' />
         <link
-          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
+          href='https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap'
+          rel='stylesheet'
         />
-        <link rel="stylesheet" href="/assets/site.css?v=3" />
+        <link rel='stylesheet' href='/assets/site.css?v=3' />
       </head>
       <body>
-        <header class="topbar">
-          <a class="brand" href="/">
+        <header class='topbar'>
+          <a class='brand' href='/'>
             hono-docs
           </a>
-          <nav aria-label="Primary">
-            <a href="/#install">Install</a>
-            <a href="/#examples">Examples</a>
-            <a href="/docs/api">API docs</a>
+          <nav aria-label='Primary'>
+            <a href='/#install'>Install</a>
+            <a href='/#examples'>Examples</a>
+            <a href='/docs/api'>API docs</a>
           </nav>
         </header>
         {children}
@@ -140,28 +219,42 @@ function Layout({ title, children }: { title: string; children: Child }) {
   )
 }
 
-function ExampleRows() {
+function ExampleRows({
+  examples,
+  appSources,
+}: {
+  examples: Example[]
+  appSources: Record<string, string>
+}) {
   return (
     <>
       {examples.map((example) => (
-        <article class="example-row" id={example.slug}>
+        <article class='example-row' id={example.slug}>
           <div>
             <h3>{example.name}</h3>
-            <p>{example.pattern}</p>
+            <p>{example.title}</p>
           </div>
           <div>
-            <p>{example.description}</p>
-            <div class="links example-links">
+            <Markdown>{example.description}</Markdown>
+            <div class='links example-links'>
               <a href={swaggerPath(example)}>
-                <Icon name="swagger" /> Open Swagger
+                <Icon name='swagger' /> Open Swagger
               </a>
               <a href={scalarPath(example)}>
-                <Icon name="scalar" /> Open Scalar
+                <Icon name='scalar' /> Open Scalar
               </a>
               <a href={openApiPath(example)}>
-                <Icon name="json" /> openapi.json
+                <Icon name='json' /> openapi.json
               </a>
             </div>
+            <details class='source-toggle'>
+              <summary>
+                <Icon name='api' /> app.ts
+              </summary>
+              <CodeBlock>
+                {appSources[example.slug] ?? 'Unable to load integration app source.'}
+              </CodeBlock>
+            </details>
           </div>
         </article>
       ))}
@@ -171,7 +264,7 @@ function ExampleRows() {
 
 function ApiTable({ rows }: { rows: [Child, Child][] }) {
   return (
-    <div class="api-table">
+    <div class='api-table'>
       {rows.map(([label, description]) => (
         <>
           <div>{label}</div>
@@ -182,37 +275,37 @@ function ApiTable({ rows }: { rows: [Child, Child][] }) {
   )
 }
 
-export function renderHome() {
+export function renderHome(examples: Example[], appSources: Record<string, string>) {
   return (
-    <Layout title="hono-docs">
-      <main class="page">
-        <aside class="sidebar" aria-label="On this page">
+    <Layout title='hono-docs'>
+      <main class='page'>
+        <aside class='sidebar' aria-label='On this page'>
           <PageNav />
         </aside>
-        <div class="content">
-          <section class="hero">
-            <p class="eyebrow">OpenAPI for Hono</p>
+        <div class='content'>
+          <section class='hero'>
+            <p class='eyebrow'>OpenAPI for Hono</p>
             <h1>Generate OpenAPI from Hono route types.</h1>
-            <p class="lead">
+            <p class='lead'>
               hono-docs reads your typed Hono app and emits an OpenAPI document. Use the JSON with
               Scalar, Swagger UI, or any OpenAPI client tooling.
             </p>
-            <div class="actions">
-              <a class="button" href="#openapi-json">
+            <div class='actions'>
+              <a class='button' href='#openapi-json'>
                 See the Hono example
               </a>
-              <a class="button secondary" href="#examples">
+              <a class='button secondary' href='#examples'>
                 Browse fixtures
               </a>
             </div>
           </section>
 
-          <section class="section" id="install">
+          <section class='section' id='install'>
             <h2>Install</h2>
             <CodeBlock>pnpm add hono-docs @scalar/hono-api-reference @hono/swagger-ui</CodeBlock>
           </section>
 
-          <section class="section" id="openapi-json">
+          <section class='section' id='openapi-json'>
             <h2>Expose OpenAPI JSON from Hono</h2>
             <p>
               Add the OpenAPI middleware to your app. The generated document is based on the
@@ -232,7 +325,7 @@ export default app;
             `}</CodeBlock>
           </section>
 
-          <section class="section" id="existing-ui">
+          <section class='section' id='existing-ui'>
             <div>
               <h2>Use existing OpenAPI UI middleware</h2>
               <p>
@@ -240,7 +333,7 @@ export default app;
                 such as Scalar and Swagger UI can read that endpoint without any custom adapter.
               </p>
             </div>
-            <div class="code-grid">
+            <div class='code-grid'>
               <CodeBlock>{`
 import { Scalar } from "@scalar/hono-api-reference";
 
@@ -258,7 +351,7 @@ app.get("/swagger", swaggerUI({
             </div>
           </section>
 
-          <section class="section" id="config">
+          <section class='section' id='config'>
             <h2>Configuration</h2>
             <p>
               Configure the generator with your app type path, output target, OpenAPI metadata, and
@@ -285,16 +378,16 @@ export default defineConfig({
             `}</CodeBlock>
           </section>
 
-          <section class="section" id="examples">
-            <div class="section-heading">
+          <section class='section' id='examples'>
+            <div class='section-heading'>
               <h2>Integration apps</h2>
               <p>
                 Real Hono apps mounted under <code>/integration/:name</code>, with generated JSON
                 and ready-to-open Scalar and Swagger views.
               </p>
             </div>
-            <div class="example-list">
-              <ExampleRows />
+            <div class='example-list'>
+              <ExampleRows examples={examples} appSources={appSources} />
             </div>
           </section>
         </div>
@@ -309,51 +402,109 @@ export default defineConfig({
 
 export function renderApiDocs() {
   return (
-    <Layout title="hono-docs API - hono-docs">
-      <main class="page single">
-        <div class="content">
-          <section class="hero compact">
-            <p class="eyebrow">API reference</p>
+    <Layout title='hono-docs API - hono-docs'>
+      <main class='page single'>
+        <div class='content'>
+          <section class='hero compact'>
+            <p class='eyebrow'>API reference</p>
             <h1>hono-docs public API.</h1>
-            <p class="lead">
+            <p class='lead'>
               The small surface area needed to generate OpenAPI from Hono route types and serve it
               through existing documentation middleware.
             </p>
           </section>
 
-          <section class="section">
+          <section class='section'>
             <h2>Runtime middleware</h2>
             <ApiTable
               rows={[
-                [<code>serveOpenAPI(options?)</code>, <>Hono handler that serves an OpenAPI JSON document and can generate it when missing.</>],
-                [<code>options.config</code>, <>Path to a config file, or an imported <code>HonoDocsConfig</code> object.</>],
-                [<code>options.rootPath</code>, <>Project root used to resolve paths when <code>config</code> is an imported object.</>],
-                [<code>options.outputPath</code>, <>Explicit JSON file path to serve instead of reading it from config.</>],
-                [<code>options.regenerate</code>, <>Controls whether a missing JSON file should be generated. Defaults to <code>true</code>.</>],
+                [
+                  <code>serveOpenAPI(options?)</code>,
+                  <>
+                    Hono handler that serves an OpenAPI JSON document and can generate it when
+                    missing.
+                  </>,
+                ],
+                [
+                  <code>options.config</code>,
+                  <>
+                    Path to a config file, or an imported <code>HonoDocsConfig</code> object.
+                  </>,
+                ],
+                [
+                  <code>options.rootPath</code>,
+                  <>
+                    Project root used to resolve paths when <code>config</code> is an imported
+                    object.
+                  </>,
+                ],
+                [
+                  <code>options.outputPath</code>,
+                  <>Explicit JSON file path to serve instead of reading it from config.</>,
+                ],
+                [
+                  <code>options.regenerate</code>,
+                  <>
+                    Controls whether a missing JSON file should be generated. Defaults to{' '}
+                    <code>true</code>.
+                  </>,
+                ],
               ]}
             />
           </section>
 
-          <section class="section">
+          <section class='section'>
             <h2>Config helpers</h2>
             <ApiTable
               rows={[
-                [<code>defineConfig(config)</code>, <>No-op helper for typed <code>hono-docs.config.ts</code> files.</>],
-                [<code>HonoDocsConfig.tsConfigPath</code>, <>Path to the TypeScript config used by ts-morph.</>],
-                [<code>HonoDocsConfig.appTypePath</code>, <>Module exporting <code>AppType = typeof app</code>.</>],
-                [<code>HonoDocsConfig.outputs.openApiJson</code>, <>Final OpenAPI JSON output path.</>],
-                [<code>HonoDocsConfig.openApi</code>, <>Static OpenAPI metadata such as title, version, servers, and security.</>],
-                [<code>HonoDocsConfig.api</code>, <>Optional manual metadata overrides for inferred routes.</>],
-                [<code>HonoDocsConfig.excludePaths</code>, <>Paths excluded from generated documentation, usually docs UI and JSON endpoints.</>],
+                [
+                  <code>defineConfig(config)</code>,
+                  <>
+                    No-op helper for typed <code>hono-docs.config.ts</code> files.
+                  </>,
+                ],
+                [
+                  <code>HonoDocsConfig.tsConfigPath</code>,
+                  <>Path to the TypeScript config used by ts-morph.</>,
+                ],
+                [
+                  <code>HonoDocsConfig.appTypePath</code>,
+                  <>
+                    Module exporting <code>AppType = typeof app</code>.
+                  </>,
+                ],
+                [
+                  <code>HonoDocsConfig.outputs.openApiJson</code>,
+                  <>Final OpenAPI JSON output path.</>,
+                ],
+                [
+                  <code>HonoDocsConfig.openApi</code>,
+                  <>Static OpenAPI metadata such as title, version, servers, and security.</>,
+                ],
+                [
+                  <code>HonoDocsConfig.api</code>,
+                  <>Optional manual metadata overrides for inferred routes.</>,
+                ],
+                [
+                  <code>HonoDocsConfig.excludePaths</code>,
+                  <>
+                    Paths excluded from generated documentation, usually docs UI and JSON endpoints.
+                  </>,
+                ],
               ]}
             />
           </section>
 
-          <section class="section">
+          <section class='section'>
             <h2>Route documentation</h2>
             <ApiTable
               rows={[
-                [<code>doc(metadata)</code>, <>Middleware for inline summaries, descriptions, tags, and deprecation metadata.</>],
+                [
+                  <code>doc(metadata)</code>,
+                  <>
+                    Middleware for inline summaries, descriptions, tags, and deprecation metadata.
+                  </>,
+                ],
                 [<code>metadata.summary</code>, <>Operation summary.</>],
                 [<code>metadata.description</code>, <>Markdown-capable operation description.</>],
                 [<code>metadata.tags</code>, <>OpenAPI operation tags.</>],
@@ -362,48 +513,12 @@ export function renderApiDocs() {
             />
           </section>
 
-          <section class="section">
+          <section class='section'>
             <h2>CLI</h2>
             <CodeBlock>{`
 pnpm hono-docs generate --config hono-docs.config.ts
 pnpm hono-docs generate --config hono-docs.config.ts --rebuild
             `}</CodeBlock>
-          </section>
-        </div>
-      </main>
-    </Layout>
-  )
-}
-
-export function renderExample(example: Example) {
-  return (
-    <Layout title={`${example.name} - hono-docs`}>
-      <main class="page single">
-        <div class="content">
-          <section class="hero compact">
-            <p class="eyebrow">{example.pattern}</p>
-            <h1>{example.name}</h1>
-            <p class="lead">{example.description}</p>
-            <div class="actions">
-              <a class="button" href={swaggerPath(example)}>
-                <Icon name="swagger" /> Open Swagger
-              </a>
-              <a class="button secondary" href={scalarPath(example)}>
-                <Icon name="scalar" /> Open Scalar
-              </a>
-              <a class="button secondary" href={openApiPath(example)}>
-                <Icon name="json" /> openapi.json
-              </a>
-            </div>
-          </section>
-          <section class="section">
-            <h2>Where to look</h2>
-            <p>{example.description}</p>
-            <ul class="plain-list">
-              <li>
-                Mounted at <code>{example.mountPath}</code>
-              </li>
-            </ul>
           </section>
         </div>
       </main>

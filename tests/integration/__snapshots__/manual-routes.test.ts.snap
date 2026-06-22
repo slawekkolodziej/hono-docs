@@ -3,7 +3,14 @@
 exports[`manual-routes > matches snapshot 1`] = `
 {
   "info": {
-    "description": "Manual route definition pattern test",
+    "description": "A small Hono app is paired with explicit route metadata in config.
+
+This shows how manual metadata is layered over inferred routes:
+
+- summaries
+- tags
+- servers
+- path metadata",
     "title": "Manual Routes Test API",
     "version": "1.0.0",
   },

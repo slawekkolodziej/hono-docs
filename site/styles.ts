@@ -277,6 +277,40 @@ p code {
   line-height: 1.65;
 }
 
+.markdown {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.markdown p + p,
+.markdown p + ul,
+.markdown ul + p {
+  margin-top: 10px;
+}
+
+.markdown ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.markdown li + li {
+  margin-top: 4px;
+}
+
+.markdown code {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--soft);
+  padding: 1px 5px;
+}
+
+.markdown strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .example-row > div:first-child p {
   margin-top: 6px;
   font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
@@ -297,6 +331,40 @@ p code {
   align-items: center;
   gap: 6px;
   min-height: 30px;
+}
+
+.source-toggle {
+  margin-top: 14px;
+}
+
+.source-toggle summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  list-style: none;
+}
+
+.source-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.source-toggle summary::after {
+  content: "+";
+  margin-left: 2px;
+  color: var(--muted);
+}
+
+.source-toggle[open] summary::after {
+  content: "-";
+}
+
+.source-toggle pre {
+  margin-top: 10px;
 }
 
 .icon {
@@ -403,4 +471,4 @@ footer {
     display: grid;
   }
 }
-`;
+`

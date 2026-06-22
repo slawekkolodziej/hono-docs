@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import dedent from 'dedent'
 import { defineConfig } from 'hono-docs'
 
 export default defineConfig({
@@ -8,6 +9,15 @@ export default defineConfig({
     info: {
       title: 'BasePath Grouped App Test API',
       version: '1.0.0',
+      description: dedent`
+        Grouped routers are wrapped in \`basePath('/v1')\`.
+
+        This fixture checks that generated OpenAPI paths keep:
+
+        - the shared version prefix
+        - child router paths
+        - path params
+      `,
     },
   },
   outputs: {

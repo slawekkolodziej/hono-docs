@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url'
+import dedent from 'dedent'
 import { defineConfig } from 'hono-docs'
 
 export default defineConfig({
@@ -8,7 +9,16 @@ export default defineConfig({
     info: {
       title: 'Middleware Docs Test API',
       version: '1.0.0',
-      description: 'Test demonstrating doc() middleware integration with hono-docs',
+      description: dedent`
+        Documentation lives next to each handler via \`doc()\` middleware.
+
+        This fixture demonstrates:
+
+        - inline summaries
+        - markdown descriptions
+        - operation tags
+        - deprecated endpoints
+      `,
     },
   },
   outputs: {

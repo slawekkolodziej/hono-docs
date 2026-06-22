@@ -1,82 +1,73 @@
+import path from 'node:path'
+import { loadConfig } from '../src/config/loadConfig'
+
 export type Example = {
-  slug: string;
-  name: string;
-  pattern: string;
-  description: string;
-  mountPath: string;
-};
+  slug: string
+  name: string
+  title: string
+  description: string
+  mountPath: string
+  configPath: string
+}
+
+const exampleSlugs = [
+  'simple-router',
+  'grouped-simple',
+  'grouped-basepath',
+  'grouped-complex',
+  'grouped-nested',
+  'manual-routes',
+  'middleware-docs',
+]
+
+export const integrationDir = path.join(process.cwd(), 'integration')
+
+export function getExampleSlug(slug: string): string | undefined {
+  return exampleSlugs.find((exampleSlug) => exampleSlug === slug)
+}
+
+export function getExampleMountPath(slug: string): string {
+  return `/integration/${slug}`
+}
+
+export function getExampleConfigPath(slug: string): string {
+  const configFile = slug === 'manual-routes' ? 'hono-docs.ts' : 'hono-docs.config.ts'
+
+  return path.join(integrationDir, slug, configFile)
+}
+
+export function getExampleAppPath(slug: string): string {
+  return path.join(integrationDir, slug, 'app.ts')
+}
 
 export function openApiPath(example: Example): string {
-  return `${example.mountPath}/openapi.json`;
+  return `${example.mountPath}/openapi.json`
 }
 
 export function scalarPath(example: Example): string {
-  return `/examples/${example.slug}/scalar`;
+  return `/examples/${example.slug}/scalar`
 }
 
 export function swaggerPath(example: Example): string {
-  return `/examples/${example.slug}/swagger`;
+  return `/examples/${example.slug}/swagger`
 }
 
-export const examples: Example[] = [
-  {
-    slug: "simple-router",
-    name: "Simple Router",
-    pattern: "Single Hono app",
-    description:
-      "The baseline fixture: one Hono instance defines the whole API directly, including path params, auth-only branches, Zod validation, and Valibot validation. Use it to check the simplest AppType inference path before route composition gets involved.",
-    mountPath: "/integration/simple-router",
-  },
-  {
-    slug: "grouped-simple",
-    name: "Grouped Simple",
-    pattern: "route() composition",
-    description:
-      "Two small routers are mounted into a parent app with route(). It is the first composition case: docs routes and user routes keep their local definitions, while hono-docs has to read the final mounted shape.",
-    mountPath: "/integration/grouped-simple",
-  },
-  {
-    slug: "grouped-basepath",
-    name: "Grouped BasePath",
-    pattern: "basePath() + groups",
-    description:
-      "The grouped-router case wrapped in basePath('/v1'). This catches whether generated OpenAPI paths include the shared version prefix without losing the child router paths.",
-    mountPath: "/integration/grouped-basepath",
-  },
-  {
-    slug: "grouped-complex",
-    name: "Grouped Complex",
-    pattern: "Mixed composition",
-    description:
-      "A parent app with unrelated route groups mounted at different prefixes: health checks, API v1 routes, and auth routes. It exercises mixed prefixes instead of one tidy shared route tree.",
-    mountPath: "/integration/grouped-complex",
-  },
-  {
-    slug: "grouped-nested",
-    name: "Grouped Nested",
-    pattern: "Nested route()",
-    description:
-      "Routers nested inside routers before they reach the exported app. This fixture checks that paths are flattened through multiple route() layers, including params owned by inner routers.",
-    mountPath: "/integration/grouped-nested",
-  },
-  {
-    slug: "manual-routes",
-    name: "Manual Routes",
-    pattern: "Config overrides",
-    description:
-      "A small route file paired with explicit route metadata in config. It shows how manually supplied summaries, tags, servers, and path metadata are layered over the inferred route list.",
-    mountPath: "/integration/manual-routes",
-  },
-  {
-    slug: "middleware-docs",
-    name: "Middleware Docs",
-    pattern: "doc() middleware",
-    description:
-      "Documentation lives next to the handler via doc() middleware. This is the inline-authoring path for operation summaries, markdown descriptions, tags, and deprecated endpoints.",
-    mountPath: "/integration/middleware-docs",
-  },
-];
+export async function loadExamples(): Promise<Example[]> {
+  return Promise.all(exampleSlugs.map(loadExample))
+}
 
-export function getExample(slug: string): Example | undefined {
-  return examples.find((example) => example.slug === slug);
+async function loadExample(slug: string): Promise<Example> {
+  const configPath = getExampleConfigPath(slug)
+  const config = await loadConfig(configPath)
+  const title = config.openApi.info.title
+  const name = config.name || title
+
+  return {
+    slug,
+    name,
+    title,
+    description: config.openApi.info.description ?? title,
+    mountPath: getExampleMountPath(slug),
+    configPath,
+  }
 }

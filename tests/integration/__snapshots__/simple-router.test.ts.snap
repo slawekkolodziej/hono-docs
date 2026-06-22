@@ -3,7 +3,13 @@
 exports[`simple-router > matches snapshot 1`] = `
 {
   "info": {
-    "description": "Simple non-grouped router pattern test",
+    "description": "One Hono instance defines the whole API directly in the \`app.ts\`. This includes:
+
+- path params
+- auth-only endpoints
+- annotating endpoints with \`doc()\` middleware
+
+This example uses Zod validator.",
     "title": "Simple Router Test API",
     "version": "1.0.0",
   },
@@ -11,6 +17,9 @@ exports[`simple-router > matches snapshot 1`] = `
   "paths": {
     "/api/profile": {
       "get": {
+        "description": "Shows \`doc()\` middleware alongside an authenticated route.
+
+Send the configured bearer token to avoid the \`401\` branch.",
         "responses": {
           "200": {
             "content": {
@@ -65,14 +74,18 @@ exports[`simple-router > matches snapshot 1`] = `
             "description": "Status 401",
           },
         },
-        "summary": "Auto-generated GET /api/profile",
+        "summary": "Get current profile",
         "tags": [
-          "Simple Router",
+          "Auth",
+          "Profile",
         ],
       },
     },
     "/api/users": {
       "get": {
+        "description": "Returns the in-memory users used by the **simple-router** fixture.
+
+This route is intentionally small so the generated OpenAPI output is easy to inspect.",
         "responses": {
           "200": {
             "content": {
@@ -112,12 +125,18 @@ exports[`simple-router > matches snapshot 1`] = `
             "description": "Success response",
           },
         },
-        "summary": "Auto-generated GET /api/users",
+        "summary": "List users",
         "tags": [
-          "Simple Router",
+          "Users",
         ],
       },
       "post": {
+        "description": "Validates the JSON body with **@hono/zod-validator** before creating a user.
+
+Required fields:
+
+- \`name\`
+- \`email\`",
         "requestBody": {
           "content": {
             "application/json": {
@@ -239,152 +258,10 @@ exports[`simple-router > matches snapshot 1`] = `
             "description": "Status 400",
           },
         },
-        "summary": "Auto-generated POST /api/users",
+        "summary": "Create user with Zod",
         "tags": [
-          "Simple Router",
-        ],
-      },
-    },
-    "/api/users/valibot": {
-      "post": {
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "email": {
-                    "type": "string",
-                  },
-                  "name": {
-                    "type": "string",
-                  },
-                },
-                "required": [
-                  "name",
-                  "email",
-                ],
-                "type": "object",
-              },
-            },
-          },
-          "required": true,
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "created": {
-                      "properties": {
-                        "email": {
-                          "type": "string",
-                        },
-                        "id": {
-                          "type": "string",
-                        },
-                        "name": {
-                          "type": "string",
-                        },
-                      },
-                      "required": [
-                        "name",
-                        "email",
-                        "id",
-                      ],
-                      "type": "object",
-                    },
-                  },
-                  "required": [
-                    "created",
-                  ],
-                  "type": "object",
-                },
-              },
-            },
-            "description": "Status 201",
-          },
-          "400": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": false,
-                  "properties": {
-                    "issues": {
-                      "items": {
-                        "additionalProperties": true,
-                        "properties": {
-                          "input": {},
-                          "message": {
-                            "type": "string",
-                          },
-                          "path": {
-                            "items": {
-                              "oneOf": [
-                                {
-                                  "type": "string",
-                                },
-                                {
-                                  "type": "number",
-                                },
-                              ],
-                            },
-                            "type": "array",
-                          },
-                          "type": {
-                            "type": "string",
-                          },
-                        },
-                        "type": "object",
-                      },
-                      "type": "array",
-                    },
-                    "output": {
-                      "additionalProperties": true,
-                      "type": "object",
-                    },
-                    "success": {
-                      "const": false,
-                      "type": "boolean",
-                    },
-                    "typed": {
-                      "type": "boolean",
-                    },
-                  },
-                  "required": [
-                    "success",
-                    "typed",
-                    "issues",
-                    "output",
-                  ],
-                  "type": "object",
-                },
-              },
-            },
-            "description": "Status 400",
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "error": {
-                      "type": "string",
-                    },
-                  },
-                  "required": [
-                    "error",
-                  ],
-                  "type": "object",
-                },
-              },
-            },
-            "description": "Status 401",
-          },
-        },
-        "summary": "Auto-generated POST /api/users/valibot",
-        "tags": [
-          "Simple Router",
+          "Users",
+          "Validation",
         ],
       },
     },
@@ -444,6 +321,10 @@ exports[`simple-router > matches snapshot 1`] = `
         ],
       },
       "get": {
+        "description": "Returns a user by \`id\`.
+
+- \`200\` when the fixture user exists
+- \`404\` when the id is unknown",
         "parameters": [
           {
             "in": "path",
@@ -523,9 +404,9 @@ exports[`simple-router > matches snapshot 1`] = `
             "description": "Status 404",
           },
         },
-        "summary": "Auto-generated GET /api/users/{id}",
+        "summary": "Get user",
         "tags": [
-          "Simple Router",
+          "Users",
         ],
       },
       "put": {

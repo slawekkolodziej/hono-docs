@@ -1,7 +1,7 @@
-import createDebug from "debug";
-import { SourceFile, SyntaxKind, CallExpression } from "ts-morph";
+import createDebug from 'debug'
+import { SourceFile, SyntaxKind, CallExpression } from 'ts-morph'
 
-const debug = createDebug("hono-docs");
+const debug = createDebug('hono-docs')
 
 /**
  * Simple dedent implementation to remove common leading whitespace
@@ -9,46 +9,46 @@ const debug = createDebug("hono-docs");
  */
 function dedent(text: string): string {
   // Split into lines
-  const lines = text.split('\n');
-  
+  const lines = text.split('\n')
+
   // Remove leading and trailing empty lines
   while (lines.length && lines[0].trim() === '') {
-    lines.shift();
+    lines.shift()
   }
   while (lines.length && lines[lines.length - 1].trim() === '') {
-    lines.pop();
+    lines.pop()
   }
-  
-  if (lines.length === 0) return '';
-  
+
+  if (lines.length === 0) return ''
+
   // Find the minimum indentation (excluding empty lines)
-  let minIndent = Infinity;
+  let minIndent = Infinity
   for (const line of lines) {
     if (line.trim() !== '') {
-      const indent = line.match(/^[ \t]*/)?.[0]?.length ?? 0;
-      minIndent = Math.min(minIndent, indent);
+      const indent = line.match(/^[ \t]*/)?.[0]?.length ?? 0
+      minIndent = Math.min(minIndent, indent)
     }
   }
-  
+
   // Remove common leading whitespace
   if (minIndent > 0 && minIndent !== Infinity) {
-    return lines.map(line => line.slice(minIndent)).join('\n');
+    return lines.map((line) => line.slice(minIndent)).join('\n')
   }
-  
-  return lines.join('\n');
+
+  return lines.join('\n')
 }
 
 export interface DocConfig {
   summary?: string
-  description?: string  
+  description?: string
   tags?: string[]
   deprecated?: boolean
 }
 
 export interface RouteDocumentation {
-  method: string;
-  route: string;
-  docConfig: DocConfig;
+  method: string
+  route: string
+  docConfig: DocConfig
 }
 
 /**
@@ -56,60 +56,64 @@ export interface RouteDocumentation {
  * This is much more reliable than parsing JSDoc comments
  */
 export function extractDocumentationFromMiddleware(sourceFile: SourceFile): RouteDocumentation[] {
-  const documentation: RouteDocumentation[] = [];
+  const documentation: RouteDocumentation[] = []
 
   try {
     // Find all call expressions in the file
-    const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression);
-    
+    const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression)
+
     for (const call of callExpressions) {
       try {
         // Check if this is an HTTP method call (.get, .post, etc.)
-        const expression = call.getExpression();
-        
+        const expression = call.getExpression()
+
         if (expression.getKind() === SyntaxKind.PropertyAccessExpression) {
-          const propertyAccess = expression.asKind(SyntaxKind.PropertyAccessExpression)!;
-          const methodName = propertyAccess.getName();
-          
+          const propertyAccess = expression.asKind(SyntaxKind.PropertyAccessExpression)!
+          const methodName = propertyAccess.getName()
+
           // Check if it's an HTTP method
-          const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'];
+          const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']
           if (httpMethods.includes(methodName.toLowerCase())) {
-            
             // Extract the route path from the first argument
-            const args = call.getArguments();
-            if (args.length >= 2) { // At least route + one middleware/handler
-              const routeArg = args[0];
-              
+            const args = call.getArguments()
+            if (args.length >= 2) {
+              // At least route + one middleware/handler
+              const routeArg = args[0]
+
               if (routeArg.getKind() === SyntaxKind.StringLiteral) {
-                const route = routeArg.getText().replace(/['"]/g, '');
-                
+                const route = routeArg.getText().replace(/['"]/g, '')
+
                 // Look for doc() middleware in the arguments
-                const docConfig = findDocMiddlewareInArgs(args.slice(1)); // Skip route argument
-                
+                const docConfig = findDocMiddlewareInArgs(args.slice(1)) // Skip route argument
+
                 if (docConfig && hasUsefulDocConfig(docConfig)) {
                   documentation.push({
                     method: methodName.toLowerCase(),
                     route: route,
-                    docConfig: docConfig
-                  });
-                  
-                  debug("Found doc() middleware for %s %s: %o", methodName.toUpperCase(), route, docConfig);
+                    docConfig: docConfig,
+                  })
+
+                  debug(
+                    'Found doc() middleware for %s %s: %o',
+                    methodName.toUpperCase(),
+                    route,
+                    docConfig
+                  )
                 }
               }
             }
           }
         }
       } catch (error) {
-        debug("Error processing call expression: %s", error);
-        continue;
+        debug('Error processing call expression: %s', error)
+        continue
       }
     }
-
   } catch (error) {
-    console.warn(`⚠️ Error extracting documentation from middleware: ${error}`);
+    console.warn(`⚠️ Error extracting documentation from middleware: ${error}`)
   }
 
-  return documentation;
+  return documentation
 }
 
 /**
@@ -121,32 +125,32 @@ function findDocMiddlewareInArgs(args: any[]): DocConfig | null {
     try {
       // Check if this argument is a call expression (like doc(...))
       if (arg.getKind() === SyntaxKind.CallExpression) {
-        const callExpr = arg as CallExpression;
-        const expression = callExpr.getExpression();
-        
+        const callExpr = arg as CallExpression
+        const expression = callExpr.getExpression()
+
         // Check if it's a call to 'doc'
         if (expression.getKind() === SyntaxKind.Identifier) {
-          const identifier = expression.asKind(SyntaxKind.Identifier)!;
-          
+          const identifier = expression.asKind(SyntaxKind.Identifier)!
+
           if (identifier.getText() === 'doc') {
             // Found doc() call - extract the configuration object
-            const docArgs = callExpr.getArguments();
+            const docArgs = callExpr.getArguments()
             if (docArgs.length > 0) {
-              const configArg = docArgs[0];
-              
+              const configArg = docArgs[0]
+
               // Parse the configuration object
-              return parseDocConfigObject(configArg);
+              return parseDocConfigObject(configArg)
             }
           }
         }
       }
     } catch (error) {
-      debug("Error processing middleware argument: %s", error);
-      continue;
+      debug('Error processing middleware argument: %s', error)
+      continue
     }
   }
-  
-  return null;
+
+  return null
 }
 
 /**
@@ -154,80 +158,95 @@ function findDocMiddlewareInArgs(args: any[]): DocConfig | null {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseDocConfigObject(objectNode: any): DocConfig {
-  const config: DocConfig = {};
-  
+  const config: DocConfig = {}
+
   try {
     if (objectNode.getKind() === SyntaxKind.ObjectLiteralExpression) {
-      const properties = objectNode.getProperties();
-      
+      const properties = objectNode.getProperties()
+
       for (const prop of properties) {
         if (prop.getKind() === SyntaxKind.PropertyAssignment) {
-          const propAssignment = prop.asKind(SyntaxKind.PropertyAssignment)!;
-          const propName = propAssignment.getName();
-          const propValue = propAssignment.getInitializer();
-          
+          const propAssignment = prop.asKind(SyntaxKind.PropertyAssignment)!
+          const propName = propAssignment.getName()
+          const propValue = propAssignment.getInitializer()
+
           if (propValue) {
             switch (propName) {
               case 'summary':
                 if (propValue.getKind() === SyntaxKind.StringLiteral) {
-                  config.summary = propValue.getText().replace(/['"]/g, '');
+                  config.summary = propValue.getText().replace(/['"]/g, '')
                 } else if (propValue.getKind() === SyntaxKind.NoSubstitutionTemplateLiteral) {
                   // Handle template literals like `multiline string`
-                  const raw = propValue.getText().replace(/^`|`$/g, '');
-                  config.summary = dedent(raw);
+                  const raw = propValue.getText().replace(/^`|`$/g, '')
+                  config.summary = dedent(raw)
                 } else if (propValue.getKind() === SyntaxKind.TemplateExpression) {
                   // Handle template literals with expressions like `string ${var}`
-                  const raw = propValue.getText().replace(/^`|`$/g, '');
-                  config.summary = dedent(raw);
+                  const raw = propValue.getText().replace(/^`|`$/g, '')
+                  config.summary = dedent(raw)
+                } else if (propValue.getKind() === SyntaxKind.TaggedTemplateExpression) {
+                  config.summary = parseTaggedTemplate(propValue.getText())
                 }
-                break;
-                
+                break
+
               case 'description':
                 if (propValue.getKind() === SyntaxKind.StringLiteral) {
-                  config.description = propValue.getText().replace(/['"]/g, '');
+                  config.description = propValue.getText().replace(/['"]/g, '')
                 } else if (propValue.getKind() === SyntaxKind.NoSubstitutionTemplateLiteral) {
                   // Handle template literals like `multiline string`
-                  const raw = propValue.getText().replace(/^`|`$/g, '');
-                  config.description = dedent(raw);
+                  const raw = propValue.getText().replace(/^`|`$/g, '')
+                  config.description = dedent(raw)
                 } else if (propValue.getKind() === SyntaxKind.TemplateExpression) {
                   // Handle template literals with expressions like `string ${var}`
-                  const raw = propValue.getText().replace(/^`|`$/g, '');
-                  config.description = dedent(raw);
+                  const raw = propValue.getText().replace(/^`|`$/g, '')
+                  config.description = dedent(raw)
+                } else if (propValue.getKind() === SyntaxKind.TaggedTemplateExpression) {
+                  config.description = parseTaggedTemplate(propValue.getText())
                 }
-                break;
-                
+                break
+
               case 'tags':
                 if (propValue.getKind() === SyntaxKind.ArrayLiteralExpression) {
-                  const arrayExpr = propValue.asKind(SyntaxKind.ArrayLiteralExpression)!;
-                  const tags: string[] = [];
-                  
+                  const arrayExpr = propValue.asKind(SyntaxKind.ArrayLiteralExpression)!
+                  const tags: string[] = []
+
                   for (const element of arrayExpr.getElements()) {
                     if (element.getKind() === SyntaxKind.StringLiteral) {
-                      tags.push(element.getText().replace(/['"]/g, ''));
+                      tags.push(element.getText().replace(/['"]/g, ''))
                     }
                   }
-                  
-                  config.tags = tags;
+
+                  config.tags = tags
                 }
-                break;
-                
+                break
+
               case 'deprecated':
                 if (propValue.getKind() === SyntaxKind.TrueKeyword) {
-                  config.deprecated = true;
+                  config.deprecated = true
                 } else if (propValue.getKind() === SyntaxKind.FalseKeyword) {
-                  config.deprecated = false;
+                  config.deprecated = false
                 }
-                break;
+                break
             }
           }
         }
       }
     }
   } catch (error) {
-    debug("Error parsing doc config object: %s", error);
+    debug('Error parsing doc config object: %s', error)
   }
-  
-  return config;
+
+  return config
+}
+
+function parseTaggedTemplate(text: string): string {
+  const firstBacktick = text.indexOf('`')
+  const lastBacktick = text.lastIndexOf('`')
+
+  if (firstBacktick === -1 || lastBacktick <= firstBacktick) {
+    return ''
+  }
+
+  return dedent(text.slice(firstBacktick + 1, lastBacktick).replace(/\\`/g, '`'))
 }
 
 /**
@@ -240,19 +259,19 @@ function hasUsefulDocConfig(config: DocConfig): boolean {
     (config.tags && config.tags.length > 0) ||
     config.deprecated === true ||
     config.deprecated === false
-  );
+  )
 }
 
 /**
  * Creates a lookup map for quick access to doc config by method and route
  */
 export function createDocLookup(documentation: RouteDocumentation[]): Map<string, DocConfig> {
-  const lookup = new Map<string, DocConfig>();
-  
+  const lookup = new Map<string, DocConfig>()
+
   for (const doc of documentation) {
-    const key = `${doc.method}:${doc.route}`;
-    lookup.set(key, doc.docConfig);
+    const key = `${doc.method}:${doc.route}`
+    lookup.set(key, doc.docConfig)
   }
-  
-  return lookup;
+
+  return lookup
 }

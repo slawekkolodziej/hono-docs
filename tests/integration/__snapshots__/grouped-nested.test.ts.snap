@@ -3,6 +3,10 @@
 exports[`grouped-nested > matches snapshot 1`] = `
 {
   "info": {
+    "description": "Routers are nested inside routers before they reach the exported app.
+
+This fixture checks that paths flatten through multiple \`route()\` layers, including
+dynamic params owned by inner routers.",
     "title": "Nested Grouped App Test API",
     "version": "1.0.0",
   },

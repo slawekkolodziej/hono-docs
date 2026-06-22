@@ -3,6 +3,13 @@
 exports[`grouped-basepath > matches snapshot 1`] = `
 {
   "info": {
+    "description": "Grouped routers are wrapped in \`basePath('/v1')\`.
+
+This fixture checks that generated OpenAPI paths keep:
+
+- the shared version prefix
+- child router paths
+- path params",
     "title": "BasePath Grouped App Test API",
     "version": "1.0.0",
   },

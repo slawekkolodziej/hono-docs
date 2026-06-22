@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'hono-docs'
+import dedent from 'dedent'
 
 export default defineConfig({
   tsConfigPath: fileURLToPath(new URL('./tsconfig.json', import.meta.url)),
@@ -8,7 +9,15 @@ export default defineConfig({
     info: {
       title: 'Simple Router Test API',
       version: '1.0.0',
-      description: 'Simple non-grouped router pattern test',
+      description: dedent`
+        One Hono instance defines the whole API directly in the \`app.ts\`. This includes:
+
+        - path params
+        - auth-only endpoints
+        - annotating endpoints with \`doc()\` middleware
+
+        This example uses Zod validator.
+      `,
     },
   },
   outputs: {

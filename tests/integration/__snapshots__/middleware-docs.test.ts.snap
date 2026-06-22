@@ -3,7 +3,14 @@
 exports[`middleware-docs > matches snapshot 1`] = `
 {
   "info": {
-    "description": "Test demonstrating doc() middleware integration with hono-docs",
+    "description": "Documentation lives next to each handler via \`doc()\` middleware.
+
+This fixture demonstrates:
+
+- inline summaries
+- markdown descriptions
+- operation tags
+- deprecated endpoints",
     "title": "Middleware Docs Test API",
     "version": "1.0.0",
   },
@@ -32,7 +39,8 @@ exports[`middleware-docs > matches snapshot 1`] = `
     },
     "/health": {
       "get": {
-        "description": "Returns the current status of the API service
+        "description": "Returns the current status of the **API service**.
+
 Sometimes can return something else :D
 
 - list item 1
@@ -71,7 +79,7 @@ Sometimes can return something else :D
     "/legacy": {
       "get": {
         "deprecated": true,
-        "description": "This endpoint is deprecated and will be removed in v2.0",
+        "description": "This endpoint is **deprecated** and will be removed in v2.0.",
         "responses": {
           "200": {
             "content": {
@@ -121,7 +129,9 @@ Sometimes can return something else :D
     },
     "/users": {
       "get": {
-        "description": "Retrieve a paginated list of users with optional filtering",
+        "description": "Retrieve a paginated list of users with optional filtering.
+
+This is a compact example of markdown coming from \`doc()\` middleware.",
         "responses": {
           "200": {
             "content": {
@@ -156,7 +166,12 @@ Sometimes can return something else :D
         ],
       },
       "post": {
-        "description": "Create a new user account with the provided data",
+        "description": "Create a new user account with the provided data.
+
+Required fields:
+
+- \`name\`
+- \`email\`",
         "responses": {
           "200": {
             "content": {
@@ -190,7 +205,9 @@ Sometimes can return something else :D
     },
     "/users/{id}": {
       "get": {
-        "description": "# Retrieve detailed information about a specific user by their unique ID",
+        "description": "## Retrieve user details
+
+Retrieve detailed information about a specific user by their unique ID.",
         "parameters": [
           {
             "in": "path",

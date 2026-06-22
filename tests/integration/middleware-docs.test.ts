@@ -18,9 +18,10 @@ describe('middleware-docs', () => {
 
   test('generates the configured OpenAPI document', () => {
     expectOpenApiDocument(spec, 'Middleware Docs Test API', 'Middleware Docs Test')
-    expect(spec.info.description).toBe(
-      'Test demonstrating doc() middleware integration with hono-docs'
+    expect(spec.info.description).toContain(
+      'Documentation lives next to each handler via `doc()` middleware.'
     )
+    expect(spec.info.description).toContain('- markdown descriptions')
   })
 
   test('keeps application routes and excludes documentation UI routes', () => {
