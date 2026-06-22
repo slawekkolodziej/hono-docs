@@ -39,7 +39,16 @@ export async function generateTypes({
   let result = `// AUTO-GENERATED from ${apiGroup.appTypePath}\n\n`;
 
   typeAliases.forEach((alias) => {
-    const raw = alias.getType().getText(alias);
+    const raw =
+      alias.getName() === "AppType"
+        ? sourceFile
+            .addTypeAlias({
+              name: "__HonoDocsExtractedAppType",
+              type: `import("hono/types").ExtractSchema<${alias.getName()}>`,
+            })
+            .getType()
+            .getText(alias)
+        : alias.getType().getText(alias);
     const clean = normalizeImportPaths(raw);
     result += `export type ${alias.getName()} = ${clean};\n\n`;
   });

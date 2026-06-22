@@ -18,7 +18,7 @@ describe("doc() middleware extraction", () => {
   test("extracts basic doc() middleware configuration", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -50,7 +50,7 @@ describe("doc() middleware extraction", () => {
   test("extracts multiple routes with doc() middleware", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -140,7 +140,7 @@ describe("doc() middleware extraction", () => {
   test("handles mixed routes (some with doc, some without)", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get("/health", (c) => c.json({ status: "ok" }))
@@ -168,7 +168,7 @@ describe("doc() middleware extraction", () => {
   test("handles complex tag arrays", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -196,7 +196,7 @@ describe("doc() middleware extraction", () => {
   test("handles different HTTP methods", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get("/get", doc({ summary: "GET route" }), (c) => c.json({}))
@@ -234,7 +234,7 @@ describe("doc() middleware extraction", () => {
   test("handles parameter routes", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -265,7 +265,7 @@ describe("doc() middleware extraction", () => {
   test("handles doc() middleware with additional middleware", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -320,7 +320,7 @@ describe("doc() middleware extraction", () => {
   test("handles empty or malformed configurations gracefully", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -345,7 +345,7 @@ describe("doc() middleware extraction", () => {
   test("handles boolean values correctly", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -382,7 +382,7 @@ describe("doc() middleware extraction", () => {
   test("handles syntax errors gracefully", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         // This is malformed but should not crash the extraction
@@ -405,7 +405,7 @@ describe("doc() middleware extraction", () => {
   test("handles template literal descriptions with dedent preprocessing", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -445,7 +445,7 @@ describe("doc() middleware extraction", () => {
   test("handles template literal summaries with dedent preprocessing", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -476,7 +476,7 @@ describe("doc() middleware extraction", () => {
   test("handles descriptions with markdown content", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -517,7 +517,7 @@ describe("doc() middleware extraction", () => {
   test("handles complex indented content with proper dedent", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -558,7 +558,7 @@ describe("doc() middleware extraction", () => {
   test("handles empty template literals correctly", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -583,7 +583,7 @@ describe("doc() middleware extraction", () => {
   test("handles mixed string literals and template literals", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -643,7 +643,7 @@ describe("doc() middleware extraction", () => {
   test("comprehensive coverage of summary and description features", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(

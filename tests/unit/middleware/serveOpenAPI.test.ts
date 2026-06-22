@@ -11,6 +11,7 @@ vi.mock("../../../src/core/runGenerate");
 const mockedFs = vi.mocked(fs);
 const mockedLoadConfig = vi.mocked((await import("../../../src/config/loadConfig")).loadConfig);
 const mockedRunGenerate = vi.mocked((await import("../../../src/core/runGenerate")).runGenerate);
+const mockedRunGenerateFromConfig = vi.mocked((await import("../../../src/core/runGenerate")).runGenerateFromConfig);
 
 describe("serveOpenAPI middleware", () => {
   beforeEach(() => {
@@ -161,6 +162,84 @@ describe("serveOpenAPI middleware", () => {
     
     expect(response.status).toBe(200);
     expect(mockedLoadConfig).toHaveBeenCalledWith('./custom-config.ts');
+  });
+
+  test("uses imported config object relative to its rootPath", async () => {
+    const importedConfig = {
+      name: "simple-router",
+      appTypePath: "./routes.ts",
+      outputs: {
+        openApiJson: "./openapi.json"
+      },
+      openApi: {
+        openapi: "3.0.0" as const,
+        info: {
+          title: "Simple Router",
+          version: "1.0.0"
+        }
+      },
+      tsConfigPath: "./tsconfig.json",
+      excludePaths: []
+    };
+    const openApiContent = { openapi: "3.0.0", info: { title: "Simple Router", version: "1.0.0" } };
+
+    mockedFs.existsSync
+      .mockReturnValueOnce(true); // imported config output exists at rootPath
+    mockedFs.readFileSync.mockReturnValue(JSON.stringify(openApiContent));
+
+    const app = new Hono().get('/openapi.json', serveOpenAPI({
+      config: importedConfig,
+      rootPath: '/test/project/integration/simple-router'
+    }));
+
+    const response = await app.request('/openapi.json');
+
+    expect(response.status).toBe(200);
+    expect(mockedLoadConfig).not.toHaveBeenCalled();
+    expect(mockedFs.existsSync).toHaveBeenCalledWith('/test/project/integration/simple-router/openapi.json');
+    expect(mockedFs.readFileSync).toHaveBeenCalledWith('/test/project/integration/simple-router/openapi.json', 'utf-8');
+  });
+
+  test("generates missing OpenAPI file from imported config object", async () => {
+    const importedConfig = {
+      name: "simple-router",
+      appTypePath: "./routes.ts",
+      outputs: {
+        openApiJson: "./openapi.json"
+      },
+      openApi: {
+        openapi: "3.0.0" as const,
+        info: {
+          title: "Simple Router",
+          version: "1.0.0"
+        }
+      },
+      tsConfigPath: "./tsconfig.json",
+      excludePaths: []
+    };
+    const openApiContent = { openapi: "3.0.0", info: { title: "Generated", version: "1.0.0" } };
+
+    mockedFs.existsSync
+      .mockReturnValueOnce(false) // imported config output doesn't exist
+      .mockReturnValueOnce(true); // imported config output exists after generation
+    mockedFs.readFileSync.mockReturnValue(JSON.stringify(openApiContent));
+
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const app = new Hono().get('/openapi.json', serveOpenAPI({
+      config: importedConfig,
+      rootPath: '/test/project/integration/simple-router'
+    }));
+
+    const response = await app.request('/openapi.json');
+
+    expect(response.status).toBe(200);
+    expect(mockedLoadConfig).not.toHaveBeenCalled();
+    expect(mockedRunGenerateFromConfig).toHaveBeenCalledWith(
+      importedConfig,
+      '/test/project/integration/simple-router'
+    );
+    expect(consoleSpy).toHaveBeenCalledWith("🔄 OpenAPI spec not found, generating...");
   });
 
   test("returns error when no config file found", async () => {

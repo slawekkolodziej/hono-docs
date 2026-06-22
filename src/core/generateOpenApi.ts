@@ -2,21 +2,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import createDebug from "debug";
-import {
-  SyntaxKind,
-  TypeLiteralNode,
-  ImportTypeNode,
-  TypeReferenceNode,
-  TypeNode,
-  ts,
-} from "ts-morph";
+import { Type } from "ts-morph";
 import type {
   AppTypeSnapshotPath,
   GenerateParams,
   OpenApiPath,
   ApiGroup,
 } from "../types";
-import type { SourceFile } from "ts-morph";
 import { genParameters } from "../utils/parameters";
 import { genRequestBody } from "../utils/requestBody";
 import { buildSchema } from "../utils/buildSchema";
@@ -55,19 +47,6 @@ function isPathExcluded(path: string, excludePaths?: (string | RegExp)[]): boole
 }
 
 /**
- * Combine path prefix with route path, avoiding double slashes
- */
-function combinePathWithPrefix(prefix: string, routePath: string): string {
-  if (prefix === "/" || prefix === "") {
-    return routePath;
-  }
-  if (routePath === "/") {
-    return prefix;
-  }
-  return prefix + (routePath.startsWith("/") ? routePath : "/" + routePath);
-}
-
-/**
  * Apply documentation from doc() middleware to an operation
  */
 function applyDocumentationToOperation(
@@ -89,130 +68,129 @@ function applyDocumentationToOperation(
 }
 
 /**
- * Process typed routes from TypeLiteral nodes and add them to paths
+ * Process route schema from the TypeScript checker instead of parsing a serialized .d.ts AST.
  */
-function processTypedRoutes(
-  literalsWithPrefixes: Array<{ literal: TypeLiteralNode; prefix: string }>,
+function processInferredRoutes(
+  schemaType: Type,
+  typeLocation: import("ts-morph").Node,
   docLookup: Map<string, import("../utils/middleware-docs").DocConfig>,
   paths: OpenAPI,
   apiGroup: ApiGroup
 ): void {
-  for (const { literal: lit, prefix } of literalsWithPrefixes) {
-    debug("Processing literal with prefix: %s", prefix);
-    
-    for (const member of lit.getMembers()) {
-      if (!member.isKind(SyntaxKind.PropertySignature)) continue;
-      const routeProp = member.asKindOrThrow(SyntaxKind.PropertySignature);
-      
-      // Extract route string and normalize to OpenAPI path syntax
-      const raw = routeProp.getNameNode().getText().replace(/"/g, "");
-      
-      // Check if this route should be excluded
-      if (isPathExcluded(raw, apiGroup.excludePaths)) {
-        debug("Excluding typed route: %s", raw);
-        continue;
-      }
-      
-      const routeWithPrefix = combinePathWithPrefix(prefix, raw);
-      const route = normalizePathToOpenApi(routeWithPrefix);
-      
-      debug("Processing route: %s -> %s -> %s", raw, routeWithPrefix, route);
-      if (!paths[route]) paths[route] = {};
+  for (const routeSymbol of schemaType.getProperties()) {
+    const raw = routeSymbol.getName();
 
-      // Get the RHS TypeLiteralNode properly
-      const tn = routeProp.getTypeNode();
-      if (!tn || !tn.isKind(SyntaxKind.TypeLiteral)) continue;
-      const rhs = tn as TypeLiteralNode;
+    if (!raw.startsWith("/")) continue;
+    if (isPathExcluded(raw, apiGroup.excludePaths)) {
+      debug("Excluding inferred route: %s", raw);
+      continue;
+    }
 
-      for (const m of rhs.getMembers()) {
-        if (!m.isKind(SyntaxKind.PropertySignature)) continue;
-        const methodProp = m.asKindOrThrow(SyntaxKind.PropertySignature);
-        const name = methodProp.getNameNode().getText(); // e.g. "$get"
-        const http = name.slice(1).toLowerCase(); // "get", "post", etc.
-        const variants = unwrapUnion(methodProp.getType());
+    const route = normalizePathToOpenApi(raw);
+    if (!paths[route]) paths[route] = {};
 
-        // Check for doc() middleware documentation for this route and method
-        const docKey = `${http}:${raw}`; // Use the original route, not the prefixed one
-        const docConfig = docLookup.get(docKey);
-        
-        debug("Looking for doc() middleware with key: %s", docKey);
-        if (docConfig) {
-          debug("Found doc() middleware for %s %s: %o", http.toUpperCase(), raw, docConfig);
-        }
+    const routeType = routeSymbol.getTypeAtLocation(typeLocation);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const op: any = {};
-        
-        applyDocumentationToOperation(
-          op,
-          docConfig,
-          `Auto-generated ${http.toUpperCase()} ${route}`,
-          apiGroup.name
-        );
+    for (const methodSymbol of routeType.getProperties()) {
+      const name = methodSymbol.getName();
+      if (!name.startsWith("$")) continue;
 
-        // parameters
-        const params = genParameters(variants[0]);
-        if (params.length) op.parameters = params;
+      const http = name.slice(1).toLowerCase();
+      const methodType = methodSymbol.getTypeAtLocation(typeLocation);
+      const variants = unwrapUnion(methodType);
 
-        // requestBody
-        const rb = genRequestBody(variants[0]);
-        if (rb) op.requestBody = rb;
+      const docKey = `${http}:${raw}`;
+      const docConfig = docLookup.get(docKey);
 
-        // responses
-        op.responses = {};
-        const byStatus = groupBy(variants, (v) => {
-          const s = v
-            .getProperty("status")!
-            .getValueDeclarationOrThrow()
-            .getType()
-            .getText();
-          return /^\d+$/.test(s) ? s : "default";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const op: any = {};
+
+      applyDocumentationToOperation(
+        op,
+        docConfig,
+        `Auto-generated ${http.toUpperCase()} ${route}`,
+        apiGroup.name
+      );
+
+      const params = genParameters(variants[0], typeLocation);
+      if (params.length) op.parameters = params;
+
+      const rb = genRequestBody(variants[0], typeLocation);
+      if (rb) op.requestBody = rb;
+
+      op.responses = {};
+      const byStatus = groupBy(variants, (v) => {
+        const status = v.getProperty("status");
+        if (!status) return "default";
+        const statusType = status.getTypeAtLocation(typeLocation).getText();
+        return /^\d+$/.test(statusType) ? statusType : "default";
+      });
+
+      const responseEntries = Object.entries(byStatus);
+      const hasExplicitSuccess = responseEntries.some(([code]) => code === "200");
+
+      for (const [code, vs] of responseEntries) {
+        const schemas = vs.map((v) => {
+          const output = v.getProperty("output");
+          return buildSchema(output ? output.getTypeAtLocation(typeLocation) : v, typeLocation);
         });
-        
-        // Convert 'default' to '200' when appropriate and sort responses numerically
-        const responseEntries = Object.entries(byStatus);
-        const hasExplicitSuccess = responseEntries.some(([code]) => code === "200");
-        
-        for (const [code, vs] of responseEntries) {
-          const schemas = vs.map((v) =>
-            buildSchema(
-              v.getProperty("output")!.getValueDeclarationOrThrow().getType()
-            )
-          );
-          const schema = schemas.length > 1 ? { oneOf: schemas } : schemas[0];
-          
-          // Convert 'default' to '200' if no explicit 200 exists
-          const responseCode = (code === "default" && !hasExplicitSuccess) ? "200" : code;
-          
-          op.responses[responseCode] = {
-            description:
-              responseCode === "200" && code === "default"
-                ? `Success response`
-                : responseCode === "default"
+        const schema = schemas.length > 1 ? { oneOf: schemas } : schemas[0];
+        const responseCode = code === "default" && !hasExplicitSuccess ? "200" : code;
+
+        op.responses[responseCode] = {
+          description:
+            responseCode === "200" && code === "default"
+              ? `Success response`
+              : responseCode === "default"
                 ? `Default fallback response`
                 : `Status ${responseCode}`,
-            content: { "application/json": { schema } },
-          };
-        }
-
-        // Sort responses numerically (2xx, 3xx, 4xx, 5xx, then 'default' if any)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const sortedResponses: Record<string, any> = {};
-        const responseCodes = Object.keys(op.responses).sort((a, b) => {
-          if (a === "default") return 1;
-          if (b === "default") return -1;
-          return parseInt(a) - parseInt(b);
-        });
-        
-        for (const code of responseCodes) {
-          sortedResponses[code] = op.responses[code];
-        }
-        op.responses = sortedResponses;
-
-        paths[route][http] = op;
+          content: { "application/json": { schema } },
+        };
       }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sortedResponses: Record<string, any> = {};
+      const responseCodes = Object.keys(op.responses).sort((a, b) => {
+        if (a === "default") return 1;
+        if (b === "default") return -1;
+        return parseInt(a) - parseInt(b);
+      });
+
+      for (const code of responseCodes) {
+        sortedResponses[code] = op.responses[code];
+      }
+      op.responses = sortedResponses;
+
+      paths[route][http] = op;
     }
   }
+}
+
+function getInferredSchemaType(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  project: any,
+  rootPath: string,
+  apiGroup: ApiGroup
+): { schemaType: Type; typeLocation: import("ts-morph").Node } {
+  const originalPath = path.resolve(rootPath, apiGroup.appTypePath);
+  const existingOriginalFile = project.getSourceFile(originalPath);
+  if (existingOriginalFile) {
+    project.removeSourceFile(existingOriginalFile);
+  }
+
+  const originalSf = project.addSourceFileAtPath(originalPath);
+  const appTypeAlias = originalSf.getTypeAliasOrThrow("AppType");
+  const inferredAliasName = "__HonoDocsInferredSchema";
+  originalSf.getTypeAlias(inferredAliasName)?.remove();
+  const inferredAlias = originalSf.addTypeAlias({
+    name: inferredAliasName,
+    type: `import("hono/types").ExtractSchema<${appTypeAlias.getName()}>`,
+  });
+
+  return {
+    schemaType: inferredAlias.getType(),
+    typeLocation: inferredAlias,
+  };
 }
 
 /**
@@ -236,8 +214,17 @@ function loadDocumentationFromMiddleware(
       debug("Removed cached original source file from ts-morph project: %s", originalPath);
     }
     
-    const originalSf = project.addSourceFileAtPath(originalPath);
-    const documentation = extractDocumentationFromMiddleware(originalSf);
+    project.addSourceFileAtPath(originalPath);
+    const sourceRoot = path.resolve(rootPath);
+    const documentation = project
+      .getSourceFiles()
+      .filter((sourceFile: import("ts-morph").SourceFile) => {
+        const filePath = sourceFile.getFilePath();
+        return filePath.startsWith(sourceRoot) && !filePath.includes("/node_modules/");
+      })
+      .flatMap((sourceFile: import("ts-morph").SourceFile) =>
+        extractDocumentationFromMiddleware(sourceFile)
+      );
     const docLookup = createDocLookup(documentation);
     debug("Found %d routes with doc() middleware", documentation.length);
     return docLookup;
@@ -246,124 +233,6 @@ function loadDocumentationFromMiddleware(
     console.warn(`⚠️ Continuing with auto-generated documentation only`);
     return new Map<string, import("../utils/middleware-docs").DocConfig>();
   }
-}
-
-/**
- * Parse TypeScript AppType to extract route type information
- */
-function parseAppTypeRoutes(
-  sf: SourceFile
-): Array<{ literal: TypeLiteralNode; prefix: string }> {
-  const aliasDecl = sf.getTypeAliasOrThrow("AppType");
-  const topTypeNode = aliasDecl.getTypeNode();
-  
-  let typeArgs: readonly TypeNode<ts.TypeNode>[];
-
-  if (topTypeNode?.isKind(SyntaxKind.TypeReference)) {
-    typeArgs = (topTypeNode as TypeReferenceNode).getTypeArguments();
-  } else if (topTypeNode?.isKind(SyntaxKind.ImportType)) {
-    typeArgs = (topTypeNode as ImportTypeNode).getTypeArguments();
-  } else {
-    throw new Error("AppType must be an ImportType or a TypeReference");
-  }
-
-  if (typeArgs.length < 2) {
-    throw new Error("Expected two type arguments on HonoBase");
-  }
-
-  const routesNode = typeArgs[1];
-  
-  debug("Routes node kind: %s", routesNode.getKindName());
-  debug("Routes node text sample: %s", routesNode.getText().substring(0, 200));
-
-  // Extract all route nodes using the clean recursive approach
-  const literalsWithPrefixes = extractRouteNodes(routesNode);
-  debug("Extracted %d TypeLiteral nodes total", literalsWithPrefixes.length);
-  
-  return literalsWithPrefixes;
-}
-
-/**
- * Clean recursive approach to extract route nodes from any TypeScript type structure.
- * This replaces the complex, hardcoded logic with a simple tree walk.
- */
-interface RouteNode {
-  literal: TypeLiteralNode;
-  prefix: string;
-}
-
-/**
- * Recursively extract all TypeLiteral nodes with their prefixes from a type node.
- * Handles all TypeScript AST constructs: unions, intersections, parentheses, and MergeSchemaPath.
- */
-function extractRouteNodes(node: TypeNode, currentPrefix: string = ""): RouteNode[] {
-  debug("Extracting from node: %s with prefix: '%s'", node.getKindName(), currentPrefix);
-
-  // Base case: TypeLiteral contains the actual route definitions
-  if (node.isKind(SyntaxKind.TypeLiteral)) {
-    debug("Found TypeLiteral with prefix: '%s'", currentPrefix);
-    return [{ literal: node as TypeLiteralNode, prefix: currentPrefix }];
-  }
-
-  // Recursive cases: traverse the tree structure
-  if (node.isKind(SyntaxKind.UnionType)) {
-    debug("Processing UnionType with %d members", node.asKind(SyntaxKind.UnionType)!.getTypeNodes().length);
-    return node.asKind(SyntaxKind.UnionType)!.getTypeNodes()
-      .flatMap(child => extractRouteNodes(child, currentPrefix));
-  }
-
-  if (node.isKind(SyntaxKind.IntersectionType)) {
-    debug("Processing IntersectionType with %d members", node.asKind(SyntaxKind.IntersectionType)!.getTypeNodes().length);
-    return node.asKind(SyntaxKind.IntersectionType)!.getTypeNodes()
-      .flatMap(child => extractRouteNodes(child, currentPrefix));
-  }
-
-  if (node.isKind(SyntaxKind.ParenthesizedType)) {
-    debug("Processing ParenthesizedType");
-    const innerNode = node.asKind(SyntaxKind.ParenthesizedType)!.getTypeNode();
-    return extractRouteNodes(innerNode, currentPrefix);
-  }
-
-  // Special case: MergeSchemaPath adds a path prefix
-  if (node.isKind(SyntaxKind.ImportType)) {
-    return handleMergeSchemaPath(node.asKind(SyntaxKind.ImportType)!, currentPrefix);
-  }
-
-  debug("Ignoring node type: %s", node.getKindName());
-  return [];
-}
-
-/**
- * Handle MergeSchemaPath<Schema, "/prefix"> by extracting the schema and adding the prefix.
- */
-function handleMergeSchemaPath(importType: ImportTypeNode, currentPrefix: string): RouteNode[] {
-  const qualifier = importType.getQualifier();
-  if (!qualifier) return [];
-
-  let qualifierName = "";
-  if (qualifier.isKind(SyntaxKind.QualifiedName)) {
-    qualifierName = qualifier.asKind(SyntaxKind.QualifiedName)!.getRight().getText();
-  } else if (qualifier.isKind(SyntaxKind.Identifier)) {
-    qualifierName = qualifier.asKind(SyntaxKind.Identifier)!.getText();
-  }
-
-  if (qualifierName !== "MergeSchemaPath") {
-    debug("Ignoring ImportType with qualifier: %s", qualifierName);
-    return [];
-  }
-
-  const typeArgs = importType.getTypeArguments();
-  if (typeArgs.length < 2) {
-    debug("MergeSchemaPath has insufficient type args: %d", typeArgs.length);
-    return [];
-  }
-
-  const schema = typeArgs[0];
-  const pathPrefix = typeArgs[1].getText().replace(/"/g, "");
-  const fullPrefix = currentPrefix + pathPrefix;
-
-  debug("Processing MergeSchemaPath with prefix: '%s' -> '%s'", pathPrefix, fullPrefix);
-  return extractRouteNodes(schema, fullPrefix);
 }
 
 /**
@@ -388,7 +257,6 @@ function handleMergeSchemaPath(importType: ImportTypeNode, currentPrefix: string
  */
 export async function generateOpenApi({
   config,
-  snapshotPath,
   apiGroup,
   fileName,
   project,
@@ -398,27 +266,18 @@ export async function generateOpenApi({
   snapshotPath: AppTypeSnapshotPath;
   apiGroup: ApiGroup;
 }): Promise<OpenApiPath> {
-  const targetPath = path.resolve(rootPath, snapshotPath.appTypePath);
-  
-  // Remove any existing source file from the project to avoid cached AST data
-  const existingFile = project.getSourceFile(targetPath);
-  if (existingFile) {
-    project.removeSourceFile(existingFile);
-    debug("Removed cached source file from ts-morph project: %s", targetPath);
-  }
-  
-  const sf = project.addSourceFileAtPath(targetPath);
-  
   // Extract documentation from doc() middleware
   const docLookup = loadDocumentationFromMiddleware(project, rootPath, apiGroup);
-  
-  // Parse TypeScript AppType to extract route information  
-  const literalsWithPrefixes = parseAppTypeRoutes(sf);
 
   const paths: OpenAPI = {};
 
-  // Process typed routes from TypeLiteral nodes
-  processTypedRoutes(literalsWithPrefixes, docLookup, paths, apiGroup);
+  // Process the public Hono route schema from TypeScript's checker.
+  const { schemaType, typeLocation } = getInferredSchemaType(
+    project,
+    rootPath,
+    apiGroup
+  );
+  processInferredRoutes(schemaType, typeLocation, docLookup, paths, apiGroup);
 
   const spec = {
     ...config.openApi,

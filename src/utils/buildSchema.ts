@@ -4,7 +4,82 @@ import createDebug from "debug";
 const debug = createDebug("hono-docs:buildSchema");
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function buildSchema(type: import("ts-morph").Type): any {
+export function buildSchema(
+  type: import("ts-morph").Type,
+  location?: import("ts-morph").Node
+): any {
+  const getSymbolType = (symbol: import("ts-morph").Symbol) => {
+    const declaration = symbol.getValueDeclaration() || symbol.getDeclarations()[0];
+    return (location ? symbol.getTypeAtLocation(location) : undefined) || declaration?.getType();
+  };
+  const getTypeText = (target: import("ts-morph").Type) =>
+    location ? target.getText(location) : target.getText();
+
+  const initialTypeText = getTypeText(type);
+  if (
+    initialTypeText.includes("SafeParseError") ||
+    initialTypeText.includes("ZodSafeParseError") ||
+    initialTypeText.includes("ZodError")
+  ) {
+    return {
+      type: "object",
+      properties: {
+        success: { type: "boolean", const: false },
+        error: {
+          type: "object",
+          properties: {
+            issues: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  code: { type: "string" },
+                  path: { type: "array", items: { oneOf: [{ type: "string" }, { type: "number" }] } },
+                  message: { type: "string" },
+                },
+                required: ["code", "path", "message"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["issues"],
+          additionalProperties: false,
+        },
+      },
+      required: ["success", "error"],
+      additionalProperties: false,
+    };
+  }
+
+  if (
+    initialTypeText.includes("SafeParseResult") ||
+    (initialTypeText.includes("issues") && initialTypeText.includes("success"))
+  ) {
+    return {
+      type: "object",
+      properties: {
+        success: { type: "boolean", const: false },
+        typed: { type: "boolean" },
+        output: { type: "object", additionalProperties: true },
+        issues: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              type: { type: "string" },
+              input: {},
+              message: { type: "string" },
+              path: { type: "array", items: { oneOf: [{ type: "string" }, { type: "number" }] } },
+            },
+            additionalProperties: true,
+          },
+        },
+      },
+      required: ["success", "typed", "issues", "output"],
+      additionalProperties: false,
+    };
+  }
+
   // Handle union types
   if (type.isUnion()) {
     const members = type.getUnionTypes();
@@ -23,16 +98,20 @@ export function buildSchema(type: import("ts-morph").Type): any {
       return schema;
     }
     const nonNull = members.filter((u) => !u.isNull() && !u.isUndefined());
-    return { oneOf: nonNull.map(buildSchema) };
+    return { oneOf: nonNull.map((member) => buildSchema(member, location)) };
   }
   
   // Handle intersection types (common with validator error responses)
   if (type.isIntersection()) {
-    const typeText = type.getText();
+    const typeText = getTypeText(type);
     debug("Processing intersection type: %s", typeText.substring(0, 200));
     
     // Detect validation library error types and handle them specifically
-    if (typeText.includes("ZodSafeParseError") || typeText.includes("ZodError")) {
+    if (
+      typeText.includes("SafeParseError") ||
+      typeText.includes("ZodSafeParseError") ||
+      typeText.includes("ZodError")
+    ) {
       debug("Detected Zod validation error in intersection");
       // For Zod errors, we want only: success, error (with issues)
       return {
@@ -77,10 +156,9 @@ export function buildSchema(type: import("ts-morph").Type): any {
         const outputProp = member.getProperty("output");
         if (outputProp) {
           try {
-            const outputDecl = outputProp.getValueDeclaration();
-            if (outputDecl) {
-              const outputType = outputDecl.getType();
-              outputSchema = buildSchema(outputType);
+            const outputType = getSymbolType(outputProp);
+            if (outputType) {
+              outputSchema = buildSchema(outputType, location);
             }
           } catch (e) {
             debug("Could not extract Valibot output type: %s", e);
@@ -133,10 +211,9 @@ export function buildSchema(type: import("ts-morph").Type): any {
         }
         
         try {
-          const propDeclaration = prop.getValueDeclaration();
-          if (propDeclaration) {
-            const propType = propDeclaration.getType();
-            mergedSchema.properties[propName] = buildSchema(propType);
+          const propType = getSymbolType(prop);
+          if (propType) {
+            mergedSchema.properties[propName] = buildSchema(propType, location);
             
             if (!prop.isOptional()) {
               mergedSchema.required.push(propName);
@@ -177,7 +254,7 @@ export function buildSchema(type: import("ts-morph").Type): any {
     if (!arrType) return { type: "array" };
     
     // Check if this is a validation issues array
-    const arrTypeText = arrType.getText();
+    const arrTypeText = getTypeText(arrType);
     if (arrTypeText.includes("Issue") || arrTypeText === "any") {
       debug("Detected validation issues array");
       return { 
@@ -194,7 +271,7 @@ export function buildSchema(type: import("ts-morph").Type): any {
       };
     }
     
-    return { type: "array", items: buildSchema(arrType) };
+    return { type: "array", items: buildSchema(arrType, location) };
   }
   
   // Handle any/unknown types
@@ -227,10 +304,14 @@ export function buildSchema(type: import("ts-morph").Type): any {
         const propDeclaration = p.getValueDeclaration();
         if (propDeclaration) {
           const propType = propDeclaration.getType();
-          propsMap[propName] = buildSchema(propType);
-          if (!p.isOptional()) {
-            req.push(propName);
-          }
+          propsMap[propName] = buildSchema(propType, location);
+        } else {
+          const propType = getSymbolType(p);
+          if (!propType) continue;
+          propsMap[propName] = buildSchema(propType, location);
+        }
+        if (!p.isOptional()) {
+          req.push(propName);
         }
       } catch (e) {
         debug(`Failed to process property ${propName}: ${e}`);
@@ -257,7 +338,7 @@ export function buildSchema(type: import("ts-morph").Type): any {
   
   if (!isLit) {
     // Final fallback for truly unknown types
-    debug("Unable to determine structure for type: %s", type.getText().substring(0, 100));
+    debug("Unable to determine structure for type: %s", getTypeText(type).substring(0, 100));
     return { type: "object", additionalProperties: true };
   }
 

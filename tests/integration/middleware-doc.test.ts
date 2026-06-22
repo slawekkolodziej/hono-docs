@@ -15,7 +15,7 @@ describe("doc() middleware integration tests", () => {
   test("works with real Hono chaining patterns", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const userRoutes = new Hono()
         .get(
@@ -61,7 +61,7 @@ describe("doc() middleware integration tests", () => {
   test("limitations: does not handle middleware stored in variables", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const authDoc = doc({
         summary: "Authentication endpoint",
@@ -83,7 +83,7 @@ describe("doc() middleware integration tests", () => {
   test("handles nested routes with prefixes", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const adminRoutes = new Hono()
         .get(
@@ -117,7 +117,7 @@ describe("doc() middleware integration tests", () => {
   test("handles multiline configurations", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -151,7 +151,7 @@ describe("doc() middleware integration tests", () => {
   test("handles basic special characters and Unicode", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .get(
@@ -175,7 +175,7 @@ describe("doc() middleware integration tests", () => {
   test("ignores non-HTTP methods", () => {
     const sourceCode = `
       import { Hono } from "hono";
-      import { doc } from "@rcmade/hono-docs";
+      import { doc } from "hono-docs";
 
       const app = new Hono()
         .use(
