@@ -1,0 +1,75 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`middleware-response > matches snapshot 1`] = `
+{
+  "info": {
+    "description": "A focused unsupported case for middleware-returned responses.
+
+Not supported yet:
+
+- middleware can return a response at runtime
+- current Hono route types do not expose that response in the app schema
+- hono-docs therefore cannot infer the middleware response status yet
+
+This fixture is intentionally a backing case for the Hono type change.",
+    "title": "Middleware Response",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/docs": {
+      "get": {
+        "description": "This route uses middleware that can return a 500 response.
+
+Not supported yet: Hono route types do not currently expose middleware
+responses to the schema used by hono-docs, so the generated OpenAPI
+document only includes the handler response.",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docs": {
+                      "items": {
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                          },
+                          "title": {
+                            "type": "string",
+                          },
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                        ],
+                        "type": "object",
+                      },
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "docs",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Middleware response gap",
+        "tags": [
+          "Middleware Response",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "Middleware Response",
+    },
+  ],
+}
+`;

@@ -7,16 +7,16 @@ export default defineConfig({
   openApi: {
     openapi: '3.0.0',
     info: {
-      title: 'Simple Router Test API',
+      title: 'Simple Router',
       version: '1.0.0',
       description: dedent`
-        One Hono instance defines the whole API directly in the \`app.ts\`. This includes:
+        A minimal Hono app where every route lives in one \`app.ts\` file.
 
-        - path params
-        - auth-only endpoints
-        - annotating endpoints with \`doc()\` middleware
+        Works:
 
-        This example uses Zod validator.
+        - static JSON responses
+        - path parameter inference
+        - response status inference from handler branches
       `,
     },
   },
@@ -25,5 +25,4 @@ export default defineConfig({
   },
   name: 'Simple Router',
   appTypePath: fileURLToPath(new URL('./app.ts', import.meta.url)),
-  excludePaths: ['/docs', '/openapi.json'],
 })

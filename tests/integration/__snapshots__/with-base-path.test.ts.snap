@@ -1,0 +1,105 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`with-base-path > matches snapshot 1`] = `
+{
+  "info": {
+    "description": "A focused \`.basePath('/v1')\` example.
+
+Works:
+
+- base path prefixes in generated OpenAPI paths
+- path parameter inference after the base path prefix",
+    "title": "With Base Path",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/v1/status": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "ok": {
+                      "oneOf": [
+                        {
+                          "type": "boolean",
+                        },
+                        {
+                          "type": "boolean",
+                        },
+                      ],
+                    },
+                  },
+                  "required": [
+                    "ok",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated GET /v1/status",
+        "tags": [
+          "With Base Path",
+        ],
+      },
+    },
+    "/v1/users/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "user": {
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "id",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "user",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated GET /v1/users/{id}",
+        "tags": [
+          "With Base Path",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "With Base Path",
+    },
+  ],
+}
+`;

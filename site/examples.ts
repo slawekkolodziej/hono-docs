@@ -12,12 +12,13 @@ export type Example = {
 
 const exampleSlugs = [
   'simple-router',
-  'grouped-simple',
-  'grouped-basepath',
-  'grouped-complex',
-  'grouped-nested',
-  'manual-routes',
-  'middleware-docs',
+  'with-zod-validator',
+  'with-valibot-validator',
+  'nested-router',
+  'nested-router-advanced',
+  'with-base-path',
+  'doc-middleware',
+  'middleware-response',
 ]
 
 export const integrationDir = path.join(process.cwd(), 'integration')
@@ -31,9 +32,7 @@ export function getExampleMountPath(slug: string): string {
 }
 
 export function getExampleConfigPath(slug: string): string {
-  const configFile = slug === 'manual-routes' ? 'hono-docs.ts' : 'hono-docs.config.ts'
-
-  return path.join(integrationDir, slug, configFile)
+  return path.join(integrationDir, slug, 'hono-docs.config.ts')
 }
 
 export function getExampleAppPath(slug: string): string {

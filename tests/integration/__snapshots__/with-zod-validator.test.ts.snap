@@ -1,0 +1,413 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`with-zod-validator > matches snapshot 1`] = `
+{
+  "info": {
+    "description": "A small Hono app using \`@hono/zod-validator\`.
+
+Works:
+
+- JSON body schema inference
+- query parameter schema inference
+- path parameter schema inference
+- validator error responses",
+    "title": "With Zod Validator",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/search": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string",
+                },
+                {
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+              ],
+            },
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string",
+                },
+                {
+                  "items": {
+                    "type": "string",
+                  },
+                  "type": "array",
+                },
+              ],
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "query": {
+                      "properties": {
+                        "limit": {
+                          "type": "number",
+                        },
+                        "q": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "q",
+                        "limit",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "query",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "issues": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "type": "string",
+                              },
+                              "message": {
+                                "type": "string",
+                              },
+                              "path": {
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string",
+                                    },
+                                    {
+                                      "type": "number",
+                                    },
+                                  ],
+                                },
+                                "type": "array",
+                              },
+                            },
+                            "required": [
+                              "code",
+                              "path",
+                              "message",
+                            ],
+                            "type": "object",
+                          },
+                          "type": "array",
+                        },
+                      },
+                      "required": [
+                        "issues",
+                      ],
+                      "type": "object",
+                    },
+                    "success": {
+                      "const": false,
+                      "type": "boolean",
+                    },
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 400",
+          },
+        },
+        "summary": "Auto-generated GET /search",
+        "tags": [
+          "With Zod Validator",
+        ],
+      },
+    },
+    "/users": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "type": "string",
+                  },
+                  "name": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "name",
+                  "email",
+                ],
+                "type": "object",
+              },
+            },
+          },
+          "required": true,
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "user": {
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                        },
+                        "id": {
+                          "type": "string",
+                        },
+                        "name": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "name",
+                        "email",
+                        "id",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "user",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 201",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "issues": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "type": "string",
+                              },
+                              "message": {
+                                "type": "string",
+                              },
+                              "path": {
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string",
+                                    },
+                                    {
+                                      "type": "number",
+                                    },
+                                  ],
+                                },
+                                "type": "array",
+                              },
+                            },
+                            "required": [
+                              "code",
+                              "path",
+                              "message",
+                            ],
+                            "type": "object",
+                          },
+                          "type": "array",
+                        },
+                      },
+                      "required": [
+                        "issues",
+                      ],
+                      "type": "object",
+                    },
+                    "success": {
+                      "const": false,
+                      "type": "boolean",
+                    },
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 400",
+          },
+        },
+        "summary": "Auto-generated POST /users",
+        "tags": [
+          "With Zod Validator",
+        ],
+      },
+    },
+    "/users/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "user": {
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                        },
+                        "id": {
+                          "type": "string",
+                        },
+                        "name": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "user",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "error": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "issues": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "code": {
+                                "type": "string",
+                              },
+                              "message": {
+                                "type": "string",
+                              },
+                              "path": {
+                                "items": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string",
+                                    },
+                                    {
+                                      "type": "number",
+                                    },
+                                  ],
+                                },
+                                "type": "array",
+                              },
+                            },
+                            "required": [
+                              "code",
+                              "path",
+                              "message",
+                            ],
+                            "type": "object",
+                          },
+                          "type": "array",
+                        },
+                      },
+                      "required": [
+                        "issues",
+                      ],
+                      "type": "object",
+                    },
+                    "success": {
+                      "const": false,
+                      "type": "boolean",
+                    },
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 400",
+          },
+        },
+        "summary": "Auto-generated GET /users/{id}",
+        "tags": [
+          "With Zod Validator",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "With Zod Validator",
+    },
+  ],
+}
+`;

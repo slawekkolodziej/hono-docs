@@ -1,0 +1,288 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`nested-router-advanced > matches snapshot 1`] = `
+{
+  "info": {
+    "description": "Multiple routers are mounted at different path prefixes.
+
+Works:
+
+- nested router composition
+- multiple mount points
+- unrelated route groups in the same app",
+    "title": "Nested Router Advanced",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/docs": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "docs": {
+                      "items": {
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                          },
+                          "title": {
+                            "type": "string",
+                          },
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                        ],
+                        "type": "object",
+                      },
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "docs",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated GET /api/v1/docs",
+        "tags": [
+          "Nested Router Advanced",
+        ],
+      },
+    },
+    "/api/v1/docs/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "doc": {
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "id",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "doc",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated GET /api/v1/docs/{id}",
+        "tags": [
+          "Nested Router Advanced",
+        ],
+      },
+    },
+    "/api/v1/users": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "users": {
+                      "items": {
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                          },
+                          "name": {
+                            "type": "string",
+                          },
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                        ],
+                        "type": "object",
+                      },
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "users",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated GET /api/v1/users",
+        "tags": [
+          "Nested Router Advanced",
+        ],
+      },
+      "post": {
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "created": {
+                      "oneOf": [
+                        {
+                          "type": "boolean",
+                        },
+                        {
+                          "type": "boolean",
+                        },
+                      ],
+                    },
+                  },
+                  "required": [
+                    "created",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 201",
+          },
+        },
+        "summary": "Auto-generated POST /api/v1/users",
+        "tags": [
+          "Nested Router Advanced",
+        ],
+      },
+    },
+    "/auth/login": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "token",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated POST /auth/login",
+        "tags": [
+          "Nested Router Advanced",
+        ],
+      },
+    },
+    "/auth/logout": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "ok": {
+                      "oneOf": [
+                        {
+                          "type": "boolean",
+                        },
+                        {
+                          "type": "boolean",
+                        },
+                      ],
+                    },
+                  },
+                  "required": [
+                    "ok",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated POST /auth/logout",
+        "tags": [
+          "Nested Router Advanced",
+        ],
+      },
+    },
+    "/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "ok": {
+                      "oneOf": [
+                        {
+                          "type": "boolean",
+                        },
+                        {
+                          "type": "boolean",
+                        },
+                      ],
+                    },
+                  },
+                  "required": [
+                    "ok",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated GET /health",
+        "tags": [
+          "Nested Router Advanced",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "Nested Router Advanced",
+    },
+  ],
+}
+`;

@@ -1,0 +1,385 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`with-valibot-validator > matches snapshot 1`] = `
+{
+  "info": {
+    "description": "A small Hono app using \`@hono/valibot-validator\`.
+
+Works:
+
+- JSON body schema inference
+- query parameter schema inference
+- path parameter schema inference
+- validator error responses",
+    "title": "With Valibot Validator",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/search": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string",
+                },
+              ],
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "query": {
+                      "properties": {
+                        "limit": {
+                          "type": "string",
+                        },
+                        "q": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "q",
+                        "limit",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "query",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "issues": {
+                      "items": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "input": {},
+                          "message": {
+                            "type": "string",
+                          },
+                          "path": {
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                },
+                                {
+                                  "type": "number",
+                                },
+                              ],
+                            },
+                            "type": "array",
+                          },
+                          "type": {
+                            "type": "string",
+                          },
+                        },
+                        "type": "object",
+                      },
+                      "type": "array",
+                    },
+                    "output": {
+                      "additionalProperties": true,
+                      "type": "object",
+                    },
+                    "success": {
+                      "const": false,
+                      "type": "boolean",
+                    },
+                    "typed": {
+                      "type": "boolean",
+                    },
+                  },
+                  "required": [
+                    "success",
+                    "typed",
+                    "issues",
+                    "output",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 400",
+          },
+        },
+        "summary": "Auto-generated GET /search",
+        "tags": [
+          "With Valibot Validator",
+        ],
+      },
+    },
+    "/users": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "type": "string",
+                  },
+                  "name": {
+                    "type": "string",
+                  },
+                },
+                "required": [
+                  "name",
+                  "email",
+                ],
+                "type": "object",
+              },
+            },
+          },
+          "required": true,
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "user": {
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                        },
+                        "id": {
+                          "type": "string",
+                        },
+                        "name": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "name",
+                        "email",
+                        "id",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "user",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 201",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "issues": {
+                      "items": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "input": {},
+                          "message": {
+                            "type": "string",
+                          },
+                          "path": {
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                },
+                                {
+                                  "type": "number",
+                                },
+                              ],
+                            },
+                            "type": "array",
+                          },
+                          "type": {
+                            "type": "string",
+                          },
+                        },
+                        "type": "object",
+                      },
+                      "type": "array",
+                    },
+                    "output": {
+                      "additionalProperties": true,
+                      "type": "object",
+                    },
+                    "success": {
+                      "const": false,
+                      "type": "boolean",
+                    },
+                    "typed": {
+                      "type": "boolean",
+                    },
+                  },
+                  "required": [
+                    "success",
+                    "typed",
+                    "issues",
+                    "output",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 400",
+          },
+        },
+        "summary": "Auto-generated POST /users",
+        "tags": [
+          "With Valibot Validator",
+        ],
+      },
+    },
+    "/users/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "user": {
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                        },
+                        "id": {
+                          "type": "string",
+                        },
+                        "name": {
+                          "type": "string",
+                        },
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                  "required": [
+                    "user",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "issues": {
+                      "items": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "input": {},
+                          "message": {
+                            "type": "string",
+                          },
+                          "path": {
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "string",
+                                },
+                                {
+                                  "type": "number",
+                                },
+                              ],
+                            },
+                            "type": "array",
+                          },
+                          "type": {
+                            "type": "string",
+                          },
+                        },
+                        "type": "object",
+                      },
+                      "type": "array",
+                    },
+                    "output": {
+                      "additionalProperties": true,
+                      "type": "object",
+                    },
+                    "success": {
+                      "const": false,
+                      "type": "boolean",
+                    },
+                    "typed": {
+                      "type": "boolean",
+                    },
+                  },
+                  "required": [
+                    "success",
+                    "typed",
+                    "issues",
+                    "output",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 400",
+          },
+        },
+        "summary": "Auto-generated GET /users/{id}",
+        "tags": [
+          "With Valibot Validator",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "With Valibot Validator",
+    },
+  ],
+}
+`;

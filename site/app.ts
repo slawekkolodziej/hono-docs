@@ -5,13 +5,14 @@ import { Scalar } from '@scalar/hono-api-reference'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { runGenerate } from 'hono-docs'
-import groupedBasePathApp from '../integration/grouped-basepath/app'
-import groupedComplexApp from '../integration/grouped-complex/app'
-import groupedNestedApp from '../integration/grouped-nested/app'
-import groupedSimpleApp from '../integration/grouped-simple/app'
-import manualRoutesApp from '../integration/manual-routes/app'
-import middlewareDocsApp from '../integration/middleware-docs/app'
+import docMiddlewareApp from '../integration/doc-middleware/app'
+import middlewareResponseApp from '../integration/middleware-response/app'
+import nestedRouterApp from '../integration/nested-router/app'
+import nestedRouterAdvancedApp from '../integration/nested-router-advanced/app'
 import simpleRouterApp from '../integration/simple-router/app'
+import withBasePathApp from '../integration/with-base-path/app'
+import withValibotValidatorApp from '../integration/with-valibot-validator/app'
+import withZodValidatorApp from '../integration/with-zod-validator/app'
 import {
   getExampleAppPath,
   getExampleConfigPath,
@@ -77,12 +78,13 @@ app.get('/integration/:slug/openapi.json', async (c) => {
 })
 
 app.route('/integration/simple-router', simpleRouterApp)
-app.route('/integration/grouped-simple', groupedSimpleApp)
-app.route('/integration/grouped-basepath', groupedBasePathApp)
-app.route('/integration/grouped-complex', groupedComplexApp)
-app.route('/integration/grouped-nested', groupedNestedApp)
-app.route('/integration/manual-routes', manualRoutesApp)
-app.route('/integration/middleware-docs', middlewareDocsApp)
+app.route('/integration/with-zod-validator', withZodValidatorApp)
+app.route('/integration/with-valibot-validator', withValibotValidatorApp)
+app.route('/integration/nested-router', nestedRouterApp)
+app.route('/integration/nested-router-advanced', nestedRouterAdvancedApp)
+app.route('/integration/with-base-path', withBasePathApp)
+app.route('/integration/doc-middleware', docMiddlewareApp)
+app.route('/integration/middleware-response', middlewareResponseApp)
 
 app.get('/assets/site.css', (c) =>
   c.body(styles, 200, {
