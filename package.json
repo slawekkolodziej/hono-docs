@@ -1,5 +1,5 @@
 {
-  "name": "@slawekkolodziej/hono-docs",
+  "name": "hono-docs",
   "version": "1.0.30",
   "description": "Auto-generate OpenAPI 3.0 spec from Hono route types",
   "type": "module",
@@ -27,21 +27,29 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
     },
     "./core": {
       "types": "./dist/core/index.d.mts",
-      "import": "./dist/core/index.mjs"
+      "import": "./dist/core/index.mjs",
+      "default": "./dist/core/index.mjs"
     },
     "./cli": {
       "types": "./dist/cli/index.d.mts",
-      "import": "./dist/cli/index.mjs"
+      "import": "./dist/cli/index.mjs",
+      "default": "./dist/cli/index.mjs"
     },
     "./package.json": "./package.json"
   },
   "scripts": {
     "build": "tsdown",
-    "lint": "eslint . --ext .ts,.js",
+    "clean": "node -e \"const fs=require('node:fs');const path=require('node:path');for(const dir of fs.readdirSync('integration',{withFileTypes:true})){if(dir.isDirectory())fs.rmSync(path.join('integration',dir.name,'openapi.json'),{force:true});}\"",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "lint:eslint": "eslint . --ext .ts,.tsx,.js",
+    "format": "oxfmt --check",
+    "format:fix": "oxfmt",
     "test": "vitest run",
     "test.unit": "vitest run tests/unit",
     "test.integration": "vitest run tests/integration",
@@ -51,6 +59,8 @@
     "test.coverage.unit": "vitest run tests/unit --coverage",
     "test.coverage.open": "pnpm run test.coverage && open coverage/index.html",
     "test.coverage.ui": "vitest --coverage --ui",
+    "site:build": "tsdown site/dev.ts --no-config --out-dir .site --clean --format esm --platform node --deps.never-bundle hono-docs",
+    "dev": "pnpm build && pnpm run site:build && node .site/dev.mjs",
     "prepare": "husky install"
   },
   "publishConfig": {
@@ -77,7 +87,7 @@
     "@types/debug": "^4.1.12",
     "@types/node": "^24.0.3",
     "@types/yargs": "^17.0.33",
-    "@rcmade/hono-docs": "link:.",
+    "hono-docs": "link:.",
     "@typescript-eslint/eslint-plugin": "^8.34.1",
     "@typescript-eslint/parser": "^8.34.1",
     "@vitest/coverage-v8": "3.2.4",
@@ -90,6 +100,9 @@
     "hono": "4.12.26",
     "husky": "^8.0.3",
     "openapi-types": "^12.1.3",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
+    "oxlint-tsgolint": "^0.23.0",
     "standard-version": "^9.5.0",
     "tsdown": "^0.21.8",
     "typescript": "^5.9.3",

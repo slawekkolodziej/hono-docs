@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "options": {
+    "typeAware": true
+  },
+  "ignorePatterns": [
+    "**/coverage/**",
+    "**/dist/**",
+    "**/node_modules/**",
+    "examples/**",
+    "output/**",
+    "tsdown.config.ts"
+  ],
+  "rules": {
+    "eqeqeq": "warn",
+    "no-void": "warn",
+    "typescript/no-confusing-void-expression": "warn"
+  }
+}

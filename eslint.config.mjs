@@ -9,7 +9,7 @@ export default defineConfig([
     ignores: ["dist/**", "output/**", "tsdown.config.ts", "examples/**"],
   },
   {
-    files: ["**/*.ts"],
+    files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
