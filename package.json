@@ -44,12 +44,11 @@
   },
   "scripts": {
     "build": "tsdown",
-    "clean": "node -e \"const fs=require('node:fs');const path=require('node:path');for(const dir of fs.readdirSync('integration',{withFileTypes:true})){if(dir.isDirectory())fs.rmSync(path.join('integration',dir.name,'openapi.json'),{force:true});}\"",
     "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "lint:eslint": "eslint . --ext .ts,.tsx,.js",
+    "lint.fix": "oxlint --fix",
+    "lint.eslint": "eslint . --ext .ts,.tsx,.js",
     "format": "oxfmt --check",
-    "format:fix": "oxfmt",
+    "format.fix": "oxfmt",
     "test": "vitest run",
     "test.unit": "vitest run tests/unit",
     "test.integration": "vitest run tests/integration",
@@ -59,8 +58,8 @@
     "test.coverage.unit": "vitest run tests/unit --coverage",
     "test.coverage.open": "pnpm run test.coverage && open coverage/index.html",
     "test.coverage.ui": "vitest --coverage --ui",
-    "site:build": "tsdown site/dev.ts --no-config --out-dir .site --clean --format esm --platform node --deps.never-bundle hono-docs",
-    "dev": "pnpm build && pnpm run site:build && node .site/dev.mjs",
+    "site.build": "tsdown site/dev.ts --no-config --out-dir .site --clean --format esm --platform node --deps.never-bundle hono-docs",
+    "dev": "pnpm build && pnpm run site.build && node .site/dev.mjs",
     "prepare": "husky install"
   },
   "publishConfig": {
