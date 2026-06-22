@@ -1,4 +1,4 @@
-# @rcmade/hono-docs
+# hono-docs
 
 > Auto-generate OpenAPI 3.0 spec and TypeScript type snapshots from Hono route type definitions
 
@@ -6,7 +6,7 @@
 
 ## Features
 
-- **CLI** (`@rcmade/hono-docs generate`) to:
+- **CLI** (`hono-docs generate`) to:
   - Extract your route `AppType` definitions via **ts-morph**
   - Emit `.json` OpenAPI” files per API prefix under `output/*.json`
   - Generate a merged `openapi.json` spec at your configured output path
@@ -16,7 +16,7 @@
 
 ## Table of Contents
 
-- [@rcmade/hono-docs](#rcmadehono-docs)
+- [hono-docs](#hono-docs)
   - [Features](#features)
   - [Table of Contents](#table-of-contents)
   - [Install](#install)
@@ -39,13 +39,13 @@
 
 ```bash
 # using npm
-npm install --save-dev @rcmade/hono-docs
+npm install --save-dev hono-docs
 
 # using pnpm
-pnpm add -D @rcmade/hono-docs
+pnpm add -D hono-docs
 
 # using yarn
-yarn add -D @rcmade/hono-docs
+yarn add -D hono-docs
 ```
 
 ---
@@ -55,7 +55,7 @@ yarn add -D @rcmade/hono-docs
 1. **Create a config file** at the root of your project (`hono-docs.ts`):
 
    ```ts
-   import { defineConfig } from "@rcmade/hono-docs";
+   import { defineConfig } from "hono-docs";
 
    export default defineConfig({
      tsConfigPath: "./tsconfig.json",
@@ -126,7 +126,7 @@ yarn add -D @rcmade/hono-docs
 
    ## ⚠️ Limitations: Grouped `AppType` Not Supported
 
-   Currently, `@rcmade/hono-docs` **does not support** extracting route types from a grouped `AppType` where multiple sub-apps are composed using `.route()` or `.basePath()` on a single root app.
+   Currently, `hono-docs` **does not support** extracting route types from a grouped `AppType` where multiple sub-apps are composed using `.route()` or `.basePath()` on a single root app.
 
    For example, the following pattern **is not supported**:
 
@@ -197,7 +197,7 @@ yarn add -D @rcmade/hono-docs
    ```jsonc
    {
      "scripts": {
-       "docs": "npx @rcmade/hono-docs generate --config ./hono-docs.ts"
+       "docs": "npx hono-docs generate --config ./hono-docs.ts"
      }
    }
    ```
@@ -207,14 +207,14 @@ yarn add -D @rcmade/hono-docs
    ```bash
    npm run docs
    # or
-   npx @rcmade/hono-docs generate --config ./hono-docs.ts
+   npx hono-docs generate --config ./hono-docs.ts
    ```
 
    You’ll see:
 
    ```text
    ⏳ Generating Type Snapshots…
-   ✅ Wrote: node_modules/@rcmade/hono-docs/output/types/user.d.ts
+   ✅ Wrote: node_modules/hono-docs/output/types/user.d.ts
    ⏳ Generating OpenAPI Spec…
    ✅ OpenAPI written to ./openapi/openapi.json
    🎉 Done
@@ -315,7 +315,7 @@ All options live in your `defineConfig({ ... })` object:
 ## CLI Usage
 
 ```text
-Usage: @rcmade/hono-docs generate --config <path> [--output <file>]
+Usage: hono-docs generate --config <path> [--output <file>]
 
 Options:
   -c, --config   Path to your config file (TS or JS)        [string] [required]
@@ -346,7 +346,7 @@ Debug logging shows the step-by-step TypeScript AST traversal and route extracti
 You can use the API directly in code:
 
 ```ts
-import { runGenerate, defineConfig } from "@rcmade/hono-docs";
+import { runGenerate, defineConfig } from "hono-docs";
 
 (async () => {
   const cfgPath = 'yourHonoDocs.ts'
