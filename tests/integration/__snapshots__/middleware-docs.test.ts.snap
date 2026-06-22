@@ -1,0 +1,245 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`middleware-docs > matches snapshot 1`] = `
+{
+  "info": {
+    "description": "Test demonstrating doc() middleware integration with hono-docs",
+    "title": "Middleware Docs Test API",
+    "version": "1.0.0",
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/docs": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated GET /docs",
+        "tags": [
+          "Middleware Docs Test",
+        ],
+      },
+    },
+    "/health": {
+      "get": {
+        "description": "Returns the current status of the API service
+Sometimes can return something else :D
+
+- list item 1
+- list item 2",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                    },
+                    "timestamp": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "status",
+                    "timestamp",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Health check endpoint",
+        "tags": [
+          "Health",
+          "Monitoring",
+        ],
+      },
+    },
+    "/legacy": {
+      "get": {
+        "deprecated": true,
+        "description": "This endpoint is deprecated and will be removed in v2.0",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "message",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Legacy endpoint",
+        "tags": [
+          "Legacy",
+        ],
+      },
+    },
+    "/openapi.json": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Auto-generated GET /openapi.json",
+        "tags": [
+          "Middleware Docs Test",
+        ],
+      },
+    },
+    "/users": {
+      "get": {
+        "description": "Retrieve a paginated list of users with optional filtering",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "total": {
+                      "type": "number",
+                    },
+                    "users": {
+                      "items": {
+                        "additionalProperties": true,
+                        "type": "object",
+                      },
+                      "type": "array",
+                    },
+                  },
+                  "required": [
+                    "users",
+                    "total",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "List all users",
+        "tags": [
+          "Users",
+        ],
+      },
+      "post": {
+        "description": "Create a new user account with the provided data",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                    },
+                    "message": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "id",
+                    "message",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Create new user",
+        "tags": [
+          "Users",
+          "Admin",
+        ],
+      },
+    },
+    "/users/{id}": {
+      "get": {
+        "description": "# Retrieve detailed information about a specific user by their unique ID",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "email": {
+                      "type": "string",
+                    },
+                    "id": {
+                      "type": "string",
+                    },
+                    "name": {
+                      "type": "string",
+                    },
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                  ],
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Success response",
+          },
+        },
+        "summary": "Get user by ID",
+        "tags": [
+          "Users",
+        ],
+      },
+    },
+  },
+  "tags": [
+    {
+      "name": "Middleware Docs Test",
+    },
+  ],
+}
+`;

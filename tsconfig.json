@@ -5,6 +5,8 @@
     "moduleResolution": "bundler",
     "declaration": true,
     "sourceMap": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -13,6 +15,7 @@
     "preserveSymlinks": true
   },
   "include": [
-    "./**/*.ts"
+    "./**/*.ts",
+    "./**/*.tsx"
   ]
 }

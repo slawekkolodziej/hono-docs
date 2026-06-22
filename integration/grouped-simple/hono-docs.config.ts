@@ -1,18 +1,19 @@
-import { defineConfig } from "@rcmade/hono-docs";
+import { fileURLToPath } from 'node:url'
+import { defineConfig } from 'hono-docs'
 
 export default defineConfig({
-  tsConfigPath: "./tsconfig.json",
+  tsConfigPath: fileURLToPath(new URL('./tsconfig.json', import.meta.url)),
   openApi: {
-    openapi: "3.0.0",
+    openapi: '3.0.0',
     info: {
-      title: "Simple Grouped App Test API", 
-      version: "1.0.0",
+      title: 'Simple Grouped App Test API',
+      version: '1.0.0',
     },
   },
   outputs: {
-    openApiJson: "./openapi.json",
+    openApiJson: fileURLToPath(new URL('./openapi.json', import.meta.url)),
   },
-  name: "Simple Grouped App",
-  appTypePath: "./routes.ts",
-  excludePaths: ["/openapi.json", "/swagger"],
-});
+  name: 'Simple Grouped App',
+  appTypePath: fileURLToPath(new URL('./app.ts', import.meta.url)),
+  excludePaths: ['/openapi.json', '/swagger'],
+})
