@@ -9,8 +9,8 @@ export const styles = String.raw`
   --soft: #f2eee6;
   --accent: #f97316;
   --accent-soft: #fff1e6;
-  --code: #111111;
-  --code-muted: #a7a7a7;
+  --code: #140c07;
+  --code-muted: #c2b8ae;
   --max: 1120px;
 }
 
@@ -240,10 +240,10 @@ h1 {
 pre {
   margin: 0;
   overflow-x: auto;
-  border: 1px solid #242424;
+  border: 1px solid #3f2415;
   border-radius: 8px;
   background: var(--code);
-  color: #f6f6f6;
+  color: #fff7ed;
   padding: 18px;
   font-size: 13px;
   line-height: 1.65;
@@ -254,19 +254,19 @@ code {
 }
 
 .token-keyword {
-  color: #8ab4ff;
+  color: #ff8a3d;
 }
 
 .token-string {
-  color: #a7f3d0;
+  color: #5eead4;
 }
 
 .token-comment {
-  color: #777f8a;
+  color: #b98568;
 }
 
 .token-number {
-  color: #fbbf24;
+  color: #facc15;
 }
 
 p code {
@@ -299,10 +299,8 @@ p code {
 }
 
 .section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 28px;
+  display: grid;
+  gap: 12px;
   margin-bottom: 10px;
 }
 

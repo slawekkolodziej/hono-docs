@@ -19,6 +19,7 @@ const exampleSlugs = [
   'with-base-path',
   'doc-middleware',
   'middleware-response',
+  'real-world-app',
 ]
 
 export const integrationDir = path.join(process.cwd(), 'integration')

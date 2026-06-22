@@ -9,6 +9,7 @@ import docMiddlewareApp from '../integration/doc-middleware/app'
 import middlewareResponseApp from '../integration/middleware-response/app'
 import nestedRouterApp from '../integration/nested-router/app'
 import nestedRouterAdvancedApp from '../integration/nested-router-advanced/app'
+import realWorldApp from '../integration/real-world-app/app'
 import simpleRouterApp from '../integration/simple-router/app'
 import withBasePathApp from '../integration/with-base-path/app'
 import withValibotValidatorApp from '../integration/with-valibot-validator/app'
@@ -85,6 +86,7 @@ app.route('/integration/nested-router-advanced', nestedRouterAdvancedApp)
 app.route('/integration/with-base-path', withBasePathApp)
 app.route('/integration/doc-middleware', docMiddlewareApp)
 app.route('/integration/middleware-response', middlewareResponseApp)
+app.route('/integration/real-world-app', realWorldApp)
 
 app.get('/assets/site.css', (c) =>
   c.body(styles, 200, {
