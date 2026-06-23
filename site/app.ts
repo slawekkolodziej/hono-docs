@@ -4,7 +4,6 @@ import { swaggerUI } from '@hono/swagger-ui'
 import { Scalar } from '@scalar/hono-api-reference'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { runGenerate } from 'hono-docs'
 import docMiddlewareApp from '../integration/doc-middleware/app'
 import middlewareResponseApp from '../integration/middleware-response/app'
 import nestedRouterApp from '../integration/nested-router/app'
@@ -14,6 +13,7 @@ import simpleRouterApp from '../integration/simple-router/app'
 import withBasePathApp from '../integration/with-base-path/app'
 import withValibotValidatorApp from '../integration/with-valibot-validator/app'
 import withZodValidatorApp from '../integration/with-zod-validator/app'
+import { runGenerate } from '../src/core/runGenerate'
 import {
   getExampleAppPath,
   getExampleConfigPath,

@@ -62,7 +62,7 @@
     "test.coverage.open": "pnpm run test.coverage && open coverage/index.html",
     "test.coverage.ui": "vitest --coverage --ui",
     "site.build": "tsdown site/dev.ts --no-config --out-dir .site --clean --format esm --platform node --deps.never-bundle hono-docs",
-    "dev": "pnpm build && pnpm run site.build && node .site/dev.mjs",
+    "dev": "tsdown site/dev.ts --no-config --out-dir .site --clean --format esm --platform node --deps.never-bundle hono-docs --watch --on-success \"node .site/dev.mjs\"",
     "prepare": "husky install"
   },
   "publishConfig": {
