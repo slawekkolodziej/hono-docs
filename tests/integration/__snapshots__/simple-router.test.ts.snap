@@ -165,6 +165,39 @@ from a basic route.",
         ],
       },
     },
+    "/users/{id}/profile": {
+      "get": {
+        "description": "Redirects old profile URLs to the canonical
+user resource.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+            },
+          },
+        ],
+        "responses": {
+          "302": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                },
+              },
+            },
+            "description": "Status 302",
+          },
+        },
+        "summary": "Redirect to user",
+        "tags": [
+          "Users",
+        ],
+      },
+    },
   },
   "tags": [
     {

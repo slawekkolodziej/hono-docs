@@ -41,6 +41,18 @@ const app = new Hono()
       return c.json({ user })
     }
   )
+  .get(
+    '/users/:id/profile',
+    doc({
+      summary: 'Redirect to user',
+      description: `
+        Redirects old profile URLs to the canonical
+        user resource.
+      `,
+      tags: ['Users'],
+    }),
+    (c) => c.redirect(`/users/${c.req.param('id')}`, 302)
+  )
   .get('/health', (c) => c.json({ ok: true }))
 
 export default app

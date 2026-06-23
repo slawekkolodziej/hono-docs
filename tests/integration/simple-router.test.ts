@@ -26,16 +26,22 @@ describe('simple-router', () => {
     expectPaths(spec, {
       '/users': ['get'],
       '/users/{id}': ['get'],
+      '/users/{id}/profile': ['get'],
       '/health': ['get'],
     })
   })
 
   test('adds path parameters to dynamic routes', () => {
     expectPathParameter(expectOperation(spec, '/users/{id}', 'get'), 'id')
+    expectPathParameter(expectOperation(spec, '/users/{id}/profile', 'get'), 'id')
   })
 
   test('captures success and not-found response branches', () => {
     expectStatusCodes(expectOperation(spec, '/users/{id}', 'get'), ['200', '404'])
+  })
+
+  test('captures redirect response branches', () => {
+    expectStatusCodes(expectOperation(spec, '/users/{id}/profile', 'get'), ['302'])
   })
 
   test('applies doc middleware metadata to documented operations', () => {

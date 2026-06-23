@@ -17,7 +17,7 @@
 - [x] **Multiple HTTP Status Code Support**
   - [x] Test and ensure different status codes are properly documented (401, 404, 500, etc.)
   - [x] Add integration test routes that return multiple status codes from same endpoint
-  - [ ] Verify redirect responses (301, 302) are properly handled
+  - [x] Verify redirect responses (301, 302) are properly handled
   - [x] Test conditional responses (200 vs 201 based on logic)
   - [x] Ensure status-specific response schemas are generated correctly
 - [x] **Validation Library Integration**
