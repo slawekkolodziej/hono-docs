@@ -391,3 +391,51 @@ Check out [`integration/manual-routes/`](https://github.com/rcmade/hono-docs/tre
 ## License
 
 [MIT](https://github.com/Rcmade/hono-docs/blob/main/LICENSE)
+
+## Documentation deployment
+
+The documentation is published at https://slawekkolodziej.github.io/hono-docs/.
+Pushes to `main` run lint, the full test suite, package checks and a static export
+before GitHub Actions deploys to Pages. `Release GitHub Pages` can also be run manually.
+
+To preview the exported files:
+
+```sh
+pnpm install
+pnpm build
+pnpm site.export
+python3 -m http.server --directory _site 8080
+```
+
+Set `SITE_BASE_PATH=/hono-docs` when exporting for a project subdirectory.
+Pages includes the API reference, Swagger, Scalar and generated OpenAPI JSON.
+The example APIs run only in the local development server (`pnpm dev`); request
+execution is disabled in the hosted documentation.
+
+CI checks out a pinned commit of our middleware fork beside this repository.
+The validator workspace packages are development fixtures, not runtime dependencies
+of the published npm package.
+
+## npm releases
+
+`Release npm` publishes the tested tarball when a `v*.*.*` tag is pushed. The tag
+must match `package.json`. Stable versions use the `latest` dist-tag; prereleases
+use `next`. Publishing only starts after CI passes.
+
+One-time npm setup:
+
+1. For the first publication, add a granular npm publishing token as the GitHub
+   repository secret `NPM_TOKEN`. Keep the token out of source control.
+2. Once the package exists, configure its npm Trusted Publisher for GitHub Actions:
+   user `slawekkolodziej`, repository `hono-docs`, workflow `release.yml`, no environment.
+   Allow direct publishing with `npm publish`.
+3. Remove `NPM_TOKEN` after trusted publishing is configured. Later releases use OIDC.
+
+To release a new version from an up-to-date `main`:
+
+```sh
+npm version patch
+ git push origin main --follow-tags
+```
+
+A release is not published merely by merging a change or deploying documentation.

@@ -1,3 +1,4 @@
+import { isStaticSite, sitePath } from '../paths'
 import type { Child } from 'hono/jsx'
 
 export function Layout({ title, children }: { title: string; children: Child }) {
@@ -18,19 +19,24 @@ export function Layout({ title, children }: { title: string; children: Child }) 
           href='https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap'
           rel='stylesheet'
         />
-        <link rel='stylesheet' href='/assets/site.css?v=7' />
+        <link rel='stylesheet' href={sitePath('/assets/site.css?v=7')} />
       </head>
       <body>
         <header class='topbar'>
-          <a class='brand' href='/'>
+          <a class='brand' href={sitePath('/')}>
             hono-docs
           </a>
           <nav aria-label='Primary'>
-            <a href='/#install'>Install</a>
-            <a href='/#examples'>Examples</a>
-            <a href='/docs/api'>API docs</a>
+            <a href={sitePath('/#install')}>Install</a>
+            <a href={sitePath('/#examples')}>Examples</a>
+            <a href={sitePath('/docs/api')}>API docs</a>
           </nav>
         </header>
+        {isStaticSite && (
+          <p style='text-align: center; padding: 1rem'>
+            These examples are read-only. Run the project locally to try API requests.
+          </p>
+        )}
         {children}
       </body>
     </html>

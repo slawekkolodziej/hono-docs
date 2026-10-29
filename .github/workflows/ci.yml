@@ -2,47 +2,52 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches-ignore: [main]
   pull_request:
-    branches: [ main, develop ]
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20]
+    defaults:
+      run:
+        working-directory: hono-docs
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
         with:
-          version: 10
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+          path: hono-docs
+      # The local validator stubs link to this sibling checkout until upstream releases the fixes.
+      - uses: actions/checkout@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Lint code
-        run: pnpm run lint
-      
-      - name: Build project
-        run: pnpm run build
-      
-      - name: Run tests with coverage
-        run: pnpm run test.coverage
-      
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
+          repository: slawekkolodziej/hono-middleware
+          ref: 670effda6d475c6da5f289ba6f4634cee3b0a71d
+          path: middleware
+      - uses: pnpm/action-setup@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage/coverage-final.json
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
+          version: 10.33.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: hono-docs/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm build
+      - run: pnpm test.coverage
+      - run: pnpm site.build
+      - name: Export static documentation
+        run: pnpm site.export
+        env:
+          SITE_BASE_PATH: /${{ github.event.repository.name }}
+      - run: pnpm package.check
+      - run: pnpm pack --out package.tgz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: hono-docs/package.tgz
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: hono-docs/_site

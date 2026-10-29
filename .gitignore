@@ -9,3 +9,5 @@ dist
 output
 coverage
 .site
+
+_site

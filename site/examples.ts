@@ -1,3 +1,4 @@
+import { sitePath } from './paths'
 import path from 'node:path'
 import { loadConfig } from '../src/config/loadConfig'
 
@@ -41,15 +42,15 @@ export function getExampleAppPath(slug: string): string {
 }
 
 export function openApiPath(example: Example): string {
-  return `${example.mountPath}/openapi.json`
+  return sitePath(`${example.mountPath}/openapi.json`)
 }
 
 export function scalarPath(example: Example): string {
-  return `/examples/${example.slug}/scalar`
+  return sitePath(`/examples/${example.slug}/scalar`)
 }
 
 export function swaggerPath(example: Example): string {
-  return `/examples/${example.slug}/swagger`
+  return sitePath(`/examples/${example.slug}/swagger`)
 }
 
 export async function loadExamples(): Promise<Example[]> {

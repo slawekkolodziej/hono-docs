@@ -1,3 +1,4 @@
+import { isStaticSite, sitePath } from './paths'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { swaggerUI } from '@hono/swagger-ui'
@@ -21,7 +22,6 @@ import {
   getExampleSlug,
   loadExamples,
   openApiPath,
-  swaggerPath,
 } from './examples'
 import type { Example } from './examples'
 import { renderApiDocs, renderHome } from './render'
@@ -45,7 +45,8 @@ app.get(
     const slug = getExampleSlug(c.req.param('slug') ?? '')
 
     return {
-      url: slug ? `${getExampleMountPath(slug)}/openapi.json` : '/api/examples',
+      url: sitePath(slug ? `${getExampleMountPath(slug)}/openapi.json` : '/api/examples'),
+      hideTestRequestButton: isStaticSite,
       theme: 'kepler',
       layout: 'modern',
     }
@@ -53,7 +54,13 @@ app.get(
 )
 
 for (const example of await loadExamples()) {
-  app.get(swaggerPath(example), swaggerUI({ url: openApiPath(example) }))
+  app.get(
+    `/examples/${example.slug}/swagger`,
+    swaggerUI({
+      url: openApiPath(example),
+      ...(isStaticSite ? { supportedSubmitMethods: [] } : {}),
+    })
+  )
 }
 
 app.get('/integration/:slug/openapi.json', async (c) => {
