@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import app from './app'
+import app from './docs-app'
 import { loadExamples } from './examples'
 import { runGenerate } from '../src/core/runGenerate'
 

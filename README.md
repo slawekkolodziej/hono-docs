@@ -435,7 +435,7 @@ To release a new version from an up-to-date `main`:
 
 ```sh
 npm version patch
- git push origin main --follow-tags
+git push origin main --follow-tags
 ```
 
 A release is not published merely by merging a change or deploying documentation.
