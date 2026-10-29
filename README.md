@@ -1,441 +1,187 @@
 # hono-docs
 
-> Auto-generate OpenAPI 3.0 spec and TypeScript type snapshots from Hono route type definitions
+Generate an OpenAPI 3.0 document from your Hono route types. Keep routes and
+validation in your app, then use the generated JSON with Swagger, Scalar, or
+other OpenAPI tools.
 
----
-
-## Features
-
-- **CLI** (`hono-docs generate`) to:
-  - Extract your route `AppType` definitions via **ts-morph**
-  - Emit `.json` OpenAPI” files per API prefix under `output/*.json`
-  - Generate a merged `openapi.json` spec at your configured output path
-- Full TypeScript support (TS & JS config files, inference via `defineConfig`)
-
----
-
-## Table of Contents
-
-- [hono-docs](#hono-docs)
-  - [Features](#features)
-  - [Table of Contents](#table-of-contents)
-  - [Install](#install)
-  - [Quick Start](#quick-start)
-  - [⚠️ Limitations: Grouped `AppType` Not Supported](#️-limitations-grouped-apptype-not-supported)
-    - [✅ Supported: Individual AppType per Module](#-supported-individual-apptype-per-module)
-  - [Serving the OpenAPI Docs](#serving-the-openapi-docs)
-  - [Configuration](#configuration)
-  - [CLI Usage](#cli-usage)
-    - [Debug Logging](#debug-logging)
-  - [Programmatic Usage](#programmatic-usage)
-  - [Examples](#examples)
-  - [Development](#development)
-  - [Contributing](#contributing)
-  - [License](#license)
-
----
+[Documentation and examples](https://slawekkolodziej.github.io/hono-docs/) ·
+[API reference](https://slawekkolodziej.github.io/hono-docs/docs/api/)
 
 ## Install
 
-```bash
-# using npm
-npm install --save-dev hono-docs
-
-# using pnpm
-pnpm add -D hono-docs
-
-# using yarn
-yarn add -D hono-docs
-```
-
----
-
-## Quick Start
-
-1. **Create a config file** at the root of your project (`hono-docs.ts`):
-
-   ```ts
-   import { defineConfig } from "hono-docs";
-
-   export default defineConfig({
-     tsConfigPath: "./tsconfig.json",
-     openApi: {
-       openapi: "3.0.0",
-       info: { title: "My API", version: "1.0.0" },
-       servers: [{ url: "http://localhost:3000/api" }],
-     },
-     outputs: {
-       openApiJson: "./openapi/openapi.json",
-     },
-     apis: [
-       {
-         name: "Auth Routes",
-         apiPrefix: "/auth", // This will be prepended to all `api` values below
-         appTypePath: "src/routes/authRoutes.ts", // Path to your AppType export
-
-         api: [
-           // ✅ Custom OpenAPI metadata for the GET /auth/u/{id} endpoint
-           {
-             api: "/u/{id}", // Final route = /auth/u/{id}
-             method: "get",
-             summary: "Fetch user by ID", // Optional: title shown in docs
-             description: "Returns a user object based on the provided ID.",
-             tag: ["User"],
-           },
-
-           // ✅ Another example with metadata for GET /auth
-           {
-             api: "/", // Final route = /auth/
-             method: "get",
-             summary: "Get current user",
-             description:
-               "Returns the currently authenticated user's information.",
-             tag: ["User Info"],
-           },
-         ],
-       },
-     ],
-   });
-   ```
-
-2. **Route Definitions & AppType**
-   This library supports **only change routes** via a single AppType export in your routes file. You **must** export:
-
-   ```ts
-   export type AppType = typeof yourRoutesVariable;
-   ```
-
-   **Example:**
-
-   ```ts
-   // src/routes/userRoutes.ts
-   import { Hono } from "hono";
-   import { z } from "zod";
-
-   export const userRoutes = new Hono()
-     .get("/u/:id", (c) => {
-       /* … */
-     })
-     .post("/", async (c) => {
-       /* … */
-     });
-   // Must add AppType
-   export type AppType = typeof userRoutes;
-   export default userRoutes;
-   ```
-
-   ## ⚠️ Limitations: Grouped `AppType` Not Supported
-
-   Currently, `hono-docs` **does not support** extracting route types from a grouped `AppType` where multiple sub-apps are composed using `.route()` or `.basePath()` on a single root app.
-
-   For example, the following pattern **is not supported**:
-
-   ```ts
-   import { Hono } from "hono";
-   import { docs } from "./docs";
-   import { userRoutes } from "./userRoutes";
-
-   const app = new Hono()
-     .basePath("/api")
-     .get("/", (c) => {
-       return c.text("Hello Hono!");
-     })
-     .route("/docs", docs)
-     .route("/user", userRoutes);
-
-   // ❌ This Group AppType is not supported
-   type AppType = typeof app;
-   ```
-
-   ### ✅ Supported: Individual AppType per Module
-
-   Instead, define and export `AppType` individually for each route module:
-
-   ```ts
-   // docs.ts
-   import { Hono } from "hono";
-   import { Scalar } from "hono-scalar";
-   import fs from "node:fs/promises";
-   import path from "node:path";
-
-   const docs = new Hono()
-     .get(
-       "/",
-       Scalar({
-         url: "/api/docs/open-api",
-         theme: "kepler",
-         layout: "modern",
-         defaultHttpClient: { targetKey: "js", clientKey: "axios" },
-       })
-     )
-     .get("/open-api", async (c) => {
-       const raw = await fs.readFile(
-         path.join(process.cwd(), "./openapi/openapi.json"),
-         "utf-8"
-       );
-       return c.json(JSON.parse(raw));
-     });
-
-   // ✅ This AppType is supported
-   export type AppType = typeof docs;
-   ```
-
-   ```ts
-   // userRoutes.ts
-   import { Hono } from "hono";
-
-   export const userRoutes = new Hono()
-     .get("/", (c) => c.json({ name: "current user" }))
-     .get("/u/:id", (c) => c.json({ id: c.req.param("id") }));
-
-   // ✅ This AppType is supported
-   export type AppType = typeof userRoutes;
-   ```
-
-3. **Add an npm script** to `package.json`:
-
-   ```jsonc
-   {
-     "scripts": {
-       "docs": "npx hono-docs generate --config ./hono-docs.ts"
-     }
-   }
-   ```
-
-4. **Run the CLI**:
-
-   ```bash
-   npm run docs
-   # or
-   npx hono-docs generate --config ./hono-docs.ts
-   ```
-
-   You’ll see:
-
-   ```text
-   ⏳ Generating Type Snapshots…
-   ✅ Wrote: node_modules/hono-docs/output/types/user.d.ts
-   ⏳ Generating OpenAPI Spec…
-   ✅ OpenAPI written to ./openapi/openapi.json
-   🎉 Done
-   ```
-
----
-
-## Serving the OpenAPI Docs
-
-Install the viewer:
-
-```bash
-# npm
-npm install @scalar/hono-api-reference
-
-# yarn
-yarn add @scalar/hono-api-reference
-
-# pnpm
-pnpm add @scalar/hono-api-reference
-```
-
-Mount in your Hono app:
-
-```ts
-// src/routes/docs.ts
-import { Hono } from "hono";
-import { Scalar } from "@scalar/hono-api-reference";
-import fs from "node:fs/promises";
-import path from "node:path";
-
-const docs = new Hono()
-  .get(
-    "/",
-    Scalar({
-      url: "/api/docs/open-api",
-      theme: "kepler",
-      layout: "modern",
-      defaultHttpClient: { targetKey: "js", clientKey: "axios" },
-    })
-  )
-  .get("/open-api", async (c) => {
-    const raw = await fs.readFile(
-      path.join(process.cwd(), "./openapi/openapi.json"),
-      "utf-8"
-    );
-    return c.json(JSON.parse(raw));
-  });
-
-export type AppType = typeof docs;
-export default docs;
-```
-
-In `src/index.ts`:
-
-```ts
-import { Hono } from "hono";
-import docs from "./routes/docs";
-import userRoutes from "./routes/userRoutes";
-
-export default new Hono()
-  .basePath("/api")
-  .route("/docs", docs)
-  .route("/user", userRoutes);
-```
-
-Visiting `/api/docs` shows the UI; `/api/docs/open-api` serves the JSON.
-
----
-
-## Configuration
-
-All options live in your `defineConfig({ ... })` object:
-
-| Field                  | Type                                              | Required | Description                                                                  |
-| ---------------------- | ------------------------------------------------- | -------- | ---------------------------------------------------------------------------- |
-| `tsConfigPath`         | `string`                                          | Yes      | Path to your project’s `tsconfig.json`                                       |
-| `openApi`              | `OpenAPIConfig`                                   | Yes      | Static OpenAPI fields excluding `paths`, `components`, and `tags`            |
-| └ `openapi`            | `string`                                          | Yes      | OpenAPI version (e.g., `"3.0.0"`)                                            |
-| └ `info`               | `{ title: string; version: string }`              | Yes      | API title and version metadata                                               |
-| └ `servers`            | `Array<{ url: string }>`                          | Yes      | Array of server objects describing base URLs for the API                     |
-| `outputs`              | `{ openApiJson: string }`                         | Yes      | File output paths                                                            |
-| └ `openApiJson`        | `string`                                          | Yes      | Path to output the generated `openapi.json` file                             |
-| `apis`                 | `ApiGroup[]`                                      | Yes      | Array of route groups to include in the documentation                        |
-| └ `name`               | `string`                                          | Yes      | Human-readable name for the route group                                      |
-| └ `apiPrefix`          | `string`                                          | Yes      | URL path prefix for all routes in this group (e.g., `/auth`)                 |
-| └ `appTypePath`        | `string`                                          | Yes      | File path to the module exporting `AppType = typeof routesInstance`          |
-| └ `api`                | `Array<Api>`                                      | No       | Optional list of endpoint definitions; if omitted, all in `AppType` are used |
-|     └ `api`            | `string`                                          | Yes      | Endpoint path (without prefix), e.g., `/user/{id}`                           |
-|     └ `method`         | `"get" \| "post" \| "put" \| "patch" \| "delete"` | Yes      | HTTP method for the endpoint                                                 |
-|     └ `summary`        | `string`                                          | No       | Short summary for OpenAPI documentation                                      |
-|     └ `description`    | `string`                                          | No       | Longer description for the endpoint                                          |
-|     └ `tag`            | `string[]`                                        | No       | Tags used to categorize the endpoint                                         |
-| `preDefineTypeContent` | `string`                                          | No       | Optional content injected at the top of each generated `.d.ts` snapshot      |
-
----
-
-## CLI Usage
-
-```text
-Usage: hono-docs generate --config <path> [--output <file>]
-
-Options:
-  -c, --config   Path to your config file (TS or JS)        [string] [required]
-  -h, --help     Show help                                 [boolean]
-```
-
-### Debug Logging
-
-Use standard Node.js debug patterns to enable detailed logging:
-
-```bash
-# Enable hono-docs debug logging
-DEBUG=hono-docs npx hono-docs generate --config hono-docs.config.ts
-
-# Enable all debug logging (including dependencies)
-DEBUG=* npx hono-docs generate --config hono-docs.config.ts
-
-# Use wildcards for broader matching
-DEBUG=hono* npx hono-docs generate --config hono-docs.config.ts
-```
-
-Debug logging shows the step-by-step TypeScript AST traversal and route extraction process, which is useful for troubleshooting complex grouped route structures.
-
----
-
-## Programmatic Usage
-
-You can use the API directly in code:
-
-```ts
-import { runGenerate, defineConfig } from "hono-docs";
-
-(async () => {
-  const cfgPath = 'yourHonoDocs.ts'
-  await runGenerate(cfgPath);
-})();
-```
-
----
-
-## Examples
-
-Check out [`integration/manual-routes/`](https://github.com/rcmade/hono-docs/tree/main/integration/manual-routes) for a manual route setup example, or browse other patterns in [`integration/`](https://github.com/rcmade/hono-docs/tree/main/integration).
-
----
-
-## Development
-
-1. Clone & install dependencies:
-
-   git clone [https://github.com/rcmade/hono-docs.git](https://github.com/rcmade/hono-docs.git)  
-   cd hono-docs  
-   pnpm install
-
-   ```bash
-   1. Implement or modify code under `src/`.
-   2. Build and watch: pnpm build --watch
-   ```
-
-2. Test locally via `npm link` or `file:` install in a demo project.
-
----
-
-## Contributing
-
-1. Fork the repo
-2. Create a feature branch
-3. Open a PR with a clear description & tests
-4. Ensure tests pass & linting is clean
-
----
-
-## License
-
-[MIT](https://github.com/Rcmade/hono-docs/blob/main/LICENSE)
-
-## Documentation deployment
-
-The documentation is published at https://slawekkolodziej.github.io/hono-docs/.
-Pushes to `main` run lint, the full test suite, package checks and a static export
-before GitHub Actions deploys to Pages. `Release GitHub Pages` can also be run manually.
-
-To preview the exported files:
+Requires Node.js 22.18+ and Hono 4.13.14 or later in the v4 series.
 
 ```sh
-pnpm install
-pnpm build
-pnpm site.export
-python3 -m http.server --directory _site 8080
+pnpm add -D hono-docs
 ```
 
-Set `SITE_BASE_PATH=/hono-docs` when exporting for a project subdirectory.
-Pages includes the API reference, Swagger, Scalar and generated OpenAPI JSON.
-The example APIs run only in the local development server (`pnpm dev`); request
-execution is disabled in the hosted documentation.
+If you use `doc()` or `serveOpenAPI()` in your running app, install it as a
+regular dependency instead: `pnpm add hono-docs`.
 
-CI checks out a pinned commit of our middleware fork beside this repository.
-The validator workspace packages are development fixtures, not runtime dependencies
-of the published npm package.
+## Generate your first spec
 
-## npm releases
+Define your routes as a chain and export their type:
 
-`Release npm` publishes the tested tarball when a `v*.*.*` tag is pushed. The tag
-must match `package.json`. Stable versions use the `latest` dist-tag; prereleases
-use `next`. Publishing only starts after CI passes.
+```ts
+// src/app.ts
+import { Hono } from 'hono'
 
-One-time npm setup:
+const app = new Hono()
+  .get('/users', (c) => c.json({ users: [] }))
+  .get('/users/:id', (c) => c.json({ id: c.req.param('id') }))
 
-1. For the first publication, add a granular npm publishing token as the GitHub
-   repository secret `NPM_TOKEN`. Keep the token out of source control.
-2. Once the package exists, configure its npm Trusted Publisher for GitHub Actions:
-   user `slawekkolodziej`, repository `hono-docs`, workflow `release.yml`, no environment.
-   Allow direct publishing with `npm publish`.
-3. Remove `NPM_TOKEN` after trusted publishing is configured. Later releases use OIDC.
+export type AppType = typeof app
+export default app
+```
 
-To release a new version from an up-to-date `main`:
+Create `hono-docs.config.ts` in your project root:
+
+```ts
+import { defineConfig } from 'hono-docs'
+
+export default defineConfig({
+  name: 'My API',
+  tsConfigPath: './tsconfig.json',
+  appTypePath: './src/app.ts',
+  outputs: { openApiJson: './openapi.json' },
+  openApi: {
+    openapi: '3.0.0',
+    info: { title: 'My API', version: '1.0.0' },
+  },
+})
+```
+
+Run the generator:
+
+```sh
+pnpm exec hono-docs generate --config hono-docs.config.ts
+```
+
+This writes `openapi.json`. Use `--rebuild` to discard cached intermediate files
+and generate it again from scratch.
+
+## Add descriptions next to your routes
+
+Types provide the request and response shapes. Use `doc()` for summaries,
+descriptions, tags, and deprecation notices:
+
+```ts
+import { Hono } from 'hono'
+import { doc } from 'hono-docs'
+
+const app = new Hono().get(
+  '/users/:id',
+  doc({ summary: 'Get a user', tags: ['Users'] }),
+  (c) => c.json({ id: c.req.param('id') })
+)
+
+export type AppType = typeof app
+export default app
+```
+
+`doc()` adds documentation metadata without changing how the request is handled.
+You can also set route metadata in the config. See the
+[API reference](https://slawekkolodziej.github.io/hono-docs/docs/api/).
+
+## Display the docs in your app
+
+Install a viewer, for example `pnpm add @scalar/hono-api-reference`, then serve
+the generated JSON:
+
+```ts
+import { Scalar } from '@scalar/hono-api-reference'
+import { serveOpenAPI } from 'hono-docs'
+
+app.get('/openapi.json', serveOpenAPI({
+  outputPath: './openapi.json',
+  regenerate: false,
+}))
+app.get('/docs', Scalar({ url: '/openapi.json' }))
+```
+
+Generate the file during your build. With `regenerate: false`, the handler serves
+the existing file without running TypeScript analysis on a request. This handler
+needs Node.js filesystem access.
+
+## What it supports
+
+- JSON responses and status codes inferred from handlers.
+- Request bodies, query parameters, and path parameters from supported validators.
+- Nested routers composed with `.route()` and prefixes added with `.basePath()`.
+- Route metadata from `doc()` or config overrides.
+- Excluding paths with `excludePaths`, using strings or regular expressions.
+
+Keep in mind:
+
+- Chain route definitions so `AppType` retains their types.
+- Explicitly widening a handler to `MiddlewareHandler` can erase its response details.
+- Responses from `.use()` are not currently included in the generated route schema.
+- The Zod and Valibot hook fallback fixes are pending in
+  [middleware PR #2227](https://github.com/honojs/middleware/pull/2227).
+  Without them, hooks returning `void` or `undefined` can hide the default `400`
+  response from the generated spec.
+
+Browse the [working examples](https://slawekkolodziej.github.io/hono-docs/#examples)
+for complete apps, generated JSON, Swagger, and Scalar views.
+
+## Use it from a script
+
+```ts
+import { runGenerate } from 'hono-docs'
+
+await runGenerate('./hono-docs.config.ts')
+```
+
+For generator logs, run the CLI with `DEBUG=hono-docs`.
+
+## Work on this project
+
+Use Node.js 24 and pnpm 10.33.2. Until the validator fixes are released upstream,
+the development fixtures need our middleware fork in a sibling directory:
+
+```sh
+git clone --branch fix/validator-response-types-latest https://github.com/slawekkolodziej/hono-middleware.git middleware
+git clone https://github.com/slawekkolodziej/hono-docs.git
+cd hono-docs
+pnpm install
+pnpm build
+pnpm test
+```
+
+Run `pnpm dev` for the documentation server, including the example APIs.
+To preview the static site:
+
+```sh
+pnpm site.export
+pnpm site.preview
+```
+
+Open [localhost:8080](http://localhost:8080). The static version includes the
+reference docs and example specs; executing API requests is disabled.
+
+Other checks: `pnpm lint`, `pnpm test.coverage`, and `pnpm package.check`.
+
+## Deploy and release
+
+**Documentation:** pushes to `main` run CI and deploy to GitHub Pages. You can
+also run the **Release GitHub Pages** workflow manually. All tests must pass
+before deployment.
+
+**npm:** pushing a `vX.Y.Z` tag runs CI and publishes the tested package. The tag
+must match `package.json`. Stable versions use `latest`; prereleases use `next`.
+
+From an up-to-date `main`:
 
 ```sh
 npm version patch
 git push origin main --follow-tags
 ```
 
-A release is not published merely by merging a change or deploying documentation.
+The first publication needs an npm publishing token in the repository secret
+`NPM_TOKEN`. Once the package exists, configure an npm Trusted Publisher for
+`slawekkolodziej/hono-docs`, workflow `release.yml`, with direct publishing
+allowed and no environment name. Then remove the token; later releases use OIDC.
+
+## License
+
+[MIT](LICENSE)
